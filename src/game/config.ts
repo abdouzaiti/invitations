@@ -45,8 +45,8 @@ export const ROMANTIC_COLORS = {
 
 export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
   targetName: "Sarah", // Change this to her name!
-  senderName: "Alex",  // Change this to your name!
-  companionName: "Mysterious Rider",
+  senderName: "Abdou",  // Abdou waits at the end with the bike!
+  companionName: "Abdou",
   
   dateInfo: {
     date: "Next Saturday Afternoon",

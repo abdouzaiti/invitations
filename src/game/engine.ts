@@ -97,7 +97,10 @@ export class GameEngine {
   private syncInventoryWithItems() {
     Object.values(this.areas).forEach((area) => {
       area.items.forEach((item) => {
-        if (this.state.inventory.includes(item.id)) {
+        if (
+          this.state.inventory.includes(item.id) ||
+          (item.memoryId && this.state.discoveredMemories.includes(item.memoryId))
+        ) {
           item.collected = true;
         }
       });
@@ -388,7 +391,7 @@ export class GameEngine {
         this.state.playerPosition.x = 815;
         this.triggerLocalDialogue("System", "guide", [
           "The Eastern path is barred by the village Briars Gate.",
-          "Maybe the Elder Guide standing near the cozy house knows how to clear the way."
+          "Maybe Coach Moh standing near the cozy house knows how to clear the way."
         ]);
       }
     } else if (areaId === 2 && px < 15) {
@@ -469,7 +472,7 @@ export class GameEngine {
       if (dist < 60) {
         this.state.isFinalDialogueCinematic = true;
         this.notifyState();
-        this.triggerLocalDialogue(`${GAME_CONFIG.senderName}`, "companion", GAME_CONFIG.dialogues.finalMeeting, () => {
+        this.triggerLocalDialogue(`${GAME_CONFIG.senderName}`, "/abdou.png", GAME_CONFIG.dialogues.finalMeeting, () => {
           // Transition into the cinematic black prompt screen
           this.state.isGameFinished = true;
           this.notifyState();
@@ -539,18 +542,23 @@ export class GameEngine {
   }
 
   private collectItem(item: ItemObject) {
+    if (item.collected) return;
     item.collected = true;
     GAME_AUDIO.playItemPickup();
 
     if (item.type === "memory" && item.memoryId) {
-      this.state.discoveredMemories.push(item.memoryId);
+      if (!this.state.discoveredMemories.includes(item.memoryId)) {
+        this.state.discoveredMemories.push(item.memoryId);
+      }
       this.notifyState();
 
       // Open memory cinematic card overlay immediately!
       // This is handled by React capturing discoveredMemories state update
     } else {
       // Normal inventory item
-      this.state.inventory.push(item.id);
+      if (!this.state.inventory.includes(item.id)) {
+        this.state.inventory.push(item.id);
+      }
       this.notifyState();
 
       const itemNames: Record<string, string> = {

@@ -66,20 +66,20 @@ export const MemoryJournal: React.FC<MemoryJournalProps> = ({
             {inventoryItems.length === 0 ? (
               <span className="text-xs text-slate-500 italic">No exploration gear found yet. Keep searching...</span>
             ) : (
-              inventoryItems.map((item) => {
-                const isHelmet = item === "helmet";
-                return (
-                  <div
-                    key={item}
-                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-800/80 border border-amber-500/40 rounded text-xs text-amber-200"
-                  >
-                    <span>{isHelmet ? "🏍️" : "🔑"}</span>
-                    <span className="font-bold tracking-wide uppercase">
-                      {isHelmet ? "Vintage Helmet" : "Garage Key"}
-                    </span>
-                  </div>
-                );
-              })
+              inventoryItems.map((item, index) => {
+                 const isHelmet = item === "helmet";
+                 return (
+                   <div
+                     key={`inventory-item-${item}-${index}`}
+                     className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-800/80 border border-amber-500/40 rounded text-xs text-amber-200"
+                   >
+                     <span>{isHelmet ? "🏍️" : "🔑"}</span>
+                     <span className="font-bold tracking-wide uppercase">
+                       {isHelmet ? "Vintage Helmet" : "Garage Key"}
+                     </span>
+                   </div>
+                 );
+               })
             )}
           </div>
         </div>
@@ -91,12 +91,12 @@ export const MemoryJournal: React.FC<MemoryJournalProps> = ({
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
-            {GAME_CONFIG.memories.map((mem) => {
+            {GAME_CONFIG.memories.map((mem, index) => {
               const isUnlocked = getMemoryState(mem);
 
               return (
                 <div
-                  key={mem.id}
+                  key={`memory-slot-${mem.id}-${index}`}
                   onClick={() => {
                     if (isUnlocked) {
                       GAME_AUDIO.playClick();
@@ -158,6 +158,7 @@ export const MemoryJournal: React.FC<MemoryJournalProps> = ({
         <AnimatePresence>
           {selectedMemory && (
             <MemoryCard
+              key={`journal-view-card-${selectedMemory.id}`}
               memory={selectedMemory}
               onClose={() => setSelectedMemory(null)}
             />

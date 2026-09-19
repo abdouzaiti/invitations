@@ -140,6 +140,7 @@ export default function App() {
         {/* Step 1: Cinematic Narrative Opening Screen */}
         {!hasStarted && (
           <OpeningCinematic
+            key="opening-cinematic-screen"
             onComplete={() => {
               setHasStarted(true);
             }}
@@ -149,6 +150,7 @@ export default function App() {
         {/* Step 2: Ending Cinematic and Personalized Invite Ticket */}
         {gameState?.isGameFinished && (
           <EndingCinematic
+            key="ending-cinematic-screen"
             onRestart={handleRestart}
           />
         )}
@@ -255,6 +257,7 @@ export default function App() {
         {/* 1. Newly Unlocked Polaroid Card pop-up */}
         {recentDiscoveredMemory && (
           <MemoryCard
+            key={`recent-polaroid-${recentDiscoveredMemory.id}`}
             memory={recentDiscoveredMemory}
             onClose={() => {
               setRecentDiscoveredMemory(null);
@@ -265,6 +268,7 @@ export default function App() {
         {/* 2. Adventure Journal inventory book */}
         {isJournalOpen && gameState && (
           <MemoryJournal
+            key="adventure-journal-modal"
             discoveredIds={gameState.discoveredMemories}
             inventoryItems={gameState.inventory}
             onClose={() => {

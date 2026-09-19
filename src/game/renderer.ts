@@ -7,12 +7,23 @@ export class GameRenderer {
   private ctx: CanvasRenderingContext2D;
   private animFrame = 0;
   public zoomScale = 0.8; // Decreased zoom from 1.0 to 0.8 to see more map space
+  private imageCache: Map<string, HTMLImageElement> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     // Enable crisp pixel rendering
     this.ctx.imageSmoothingEnabled = false;
+  }
+
+  private getImage(src: string): HTMLImageElement {
+    let img = this.imageCache.get(src);
+    if (!img) {
+      img = new Image();
+      img.src = src;
+      this.imageCache.set(src, img);
+    }
+    return img;
   }
 
   public updateAnimation() {
@@ -620,7 +631,37 @@ export class GameRenderer {
     ctx.ellipse(16, 44, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Custom Sprite Rendering based on NPC type
+    // Check if NPC uses a custom photo/image
+    const isCustomImage =
+      npc.portrait &&
+      (npc.portrait.startsWith("/") ||
+        npc.portrait.startsWith("http") ||
+        npc.portrait.includes(".png") ||
+        npc.portrait.includes(".jpg") ||
+        npc.portrait.includes(".jpeg") ||
+        npc.portrait.includes(".webp"));
+
+    if (isCustomImage) {
+      const img = this.getImage(npc.portrait);
+      if (img.complete && img.naturalWidth > 0) {
+        // Draw the character picture directly with transparency and natural aspect ratio
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+
+        const targetHeight = 72;
+        const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
+        const dx = 16 - targetWidth / 2;
+        const dy = 44 + bob - targetHeight;
+
+        ctx.drawImage(img, dx, dy, targetWidth, targetHeight);
+
+        ctx.restore();
+        ctx.restore();
+        return;
+      }
+    }
+
+    // Custom Sprite Rendering based on NPC type (Fallback or Pixel sprites)
     if (npc.spriteType === "guide") {
       // The Elder Guide (Sage blue long robe, grey beard)
       ctx.fillStyle = "#1e3a8a"; // Deep blue robe
@@ -871,75 +912,91 @@ export class GameRenderer {
       ctx.ellipse(50, 48, 55, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 1. Spoked Wheels (Front and back)
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "#1e293b"; // Heavy rubber tires
-      ctx.fillStyle = "#cbd5e1"; // Silver spokes
+      // Use the new Moto.png uploaded by the user
+      const img = this.getImage("/Moto.png");
+      if (img.complete && img.naturalWidth > 0) {
+        ctx.imageSmoothingEnabled = true;
+        
+        // Match the scale of the original procedural bike (approx 100x50 area)
+        const targetHeight = 60;
+        const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
+        
+        // Draw centered over the shadow
+        ctx.drawImage(img, 50 - targetWidth / 2, 48 - targetHeight, targetWidth, targetHeight);
+        
+        ctx.imageSmoothingEnabled = false;
+      } else {
+        // Fallback to original procedural drawing if image not loaded
+        // 1. Spoked Wheels (Front and back)
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#1e293b"; // Heavy rubber tires
+        ctx.fillStyle = "#cbd5e1"; // Silver spokes
 
-      // Front wheel (Right side)
-      ctx.beginPath();
-      ctx.arc(80, 36, 12, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fill();
+        // Front wheel (Right side)
+        ctx.beginPath();
+        ctx.arc(80, 36, 12, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fill();
 
-      // Back wheel (Left side)
-      ctx.beginPath();
-      ctx.arc(16, 36, 12, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fill();
+        // Back wheel (Left side)
+        ctx.beginPath();
+        ctx.arc(16, 36, 12, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fill();
 
-      // Center hubs and metallic lines
-      ctx.fillStyle = "#475569";
-      ctx.fillRect(14, 34, 4, 4);
-      ctx.fillRect(78, 34, 4, 4);
+        // Center hubs and metallic lines
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(14, 34, 4, 4);
+        ctx.fillRect(78, 34, 4, 4);
 
-      // 2. Engine and Exhaust pipes (Silver & Iron)
-      ctx.fillStyle = "#334155"; // Engine block
-      ctx.fillRect(30, 22, 26, 18);
-      ctx.fillStyle = "#94a3b8"; // Silver chrome cylinders
-      ctx.fillRect(32, 20, 22, 3);
+        // 2. Engine and Exhaust pipes (Silver & Iron)
+        ctx.fillStyle = "#334155"; // Engine block
+        ctx.fillRect(30, 22, 26, 18);
+        ctx.fillStyle = "#94a3b8"; // Silver chrome cylinders
+        ctx.fillRect(32, 20, 22, 3);
 
-      // Long chrome exhaust pipe running back
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillRect(28, 38, 45, 4);
+        // Long chrome exhaust pipe running back
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillRect(28, 38, 45, 4);
 
-      // 3. Chassis frame, fuel tank (Vintage Candy Red)
-      ctx.fillStyle = "#b91c1c"; // Red fuel tank
-      ctx.fillRect(36, 12, 30, 11);
-      // Rounded edges for gas tank
-      ctx.fillRect(34, 14, 34, 7);
+        // 3. Chassis frame, fuel tank (Vintage Candy Red)
+        ctx.fillStyle = "#b91c1c"; // Red fuel tank
+        ctx.fillRect(36, 12, 30, 11);
+        // Rounded edges for gas tank
+        ctx.fillRect(34, 14, 34, 7);
 
-      ctx.fillStyle = "#111827"; // Dark vinyl seat
-      ctx.fillRect(20, 16, 20, 5);
+        ctx.fillStyle = "#111827"; // Dark vinyl seat
+        ctx.fillRect(20, 16, 20, 5);
 
-      // 4. Handlebars & Headlamp (facing right)
-      ctx.strokeStyle = "#94a3b8"; // Front forks
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(80, 36);
-      ctx.lineTo(65, 4);
-      ctx.stroke();
+        // 4. Handlebars & Headlamp (facing right)
+        ctx.strokeStyle = "#94a3b8"; // Front forks
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(80, 36);
+        ctx.lineTo(65, 4);
+        ctx.stroke();
 
-      ctx.fillStyle = "#1e293b"; // Black grips
-      ctx.fillRect(58, 2, 10, 3);
+        ctx.fillStyle = "#1e293b"; // Black grips
+        ctx.fillRect(58, 2, 10, 3);
 
-      // Headlamp shining light
-      ctx.fillStyle = "#ca8a04"; // Chrome casing
-      ctx.fillRect(68, 5, 8, 6);
+        // Headlamp shining light
+        ctx.fillStyle = "#ca8a04"; // Chrome casing
+        ctx.fillRect(68, 5, 8, 6);
 
-      // Glow yellow ray
-      const lightPulse = Math.sin(this.animFrame * 0.15) * 5;
-      const headlightGlow = ctx.createRadialGradient(76, 8, 2, 76 + 50, 8, 40 + lightPulse);
-      headlightGlow.addColorStop(0, "rgba(254, 240, 138, 0.8)");
-      headlightGlow.addColorStop(0.5, "rgba(254, 240, 138, 0.25)");
-      headlightGlow.addColorStop(1, "rgba(254, 240, 138, 0)");
-      ctx.fillStyle = headlightGlow;
-      ctx.beginPath();
-      ctx.moveTo(76, 8);
-      ctx.lineTo(160, -20);
-      ctx.lineTo(160, 40);
-      ctx.closePath();
-      ctx.fill();
+        // Glow yellow ray
+        const lightPulse = Math.sin(this.animFrame * 0.15) * 5;
+        const headlightGlow = ctx.createRadialGradient(76, 8, 2, 76 + 50, 8, 40 + lightPulse);
+        headlightGlow.addColorStop(0, "rgba(254, 240, 138, 0.8)");
+        headlightGlow.addColorStop(0.5, "rgba(254, 240, 138, 0.25)");
+        headlightGlow.addColorStop(1, "rgba(254, 240, 138, 0)");
+        ctx.fillStyle = headlightGlow;
+        ctx.beginPath();
+        ctx.moveTo(76, 8);
+        ctx.lineTo(160, -20);
+        ctx.lineTo(160, 40);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     ctx.restore();

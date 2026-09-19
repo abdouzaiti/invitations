@@ -8,8 +8,34 @@ interface DialogueBoxProps {
 }
 
 export const DialogueBox: React.FC<DialogueBoxProps> = ({ dialogue, onAdvance }) => {
-  // Simple programmatically drawn pixel-art portraits to ensure 100% load reliability
+  // Render portrait: supports custom image paths/URLs or pixel-art fallbacks
   const renderPortrait = (portrait: string) => {
+    // If it's a file path or URL (e.g. from /public folder like "/coach_moh.jpg" or "/npcs/coach.png")
+    if (
+      portrait.startsWith("/") ||
+      portrait.startsWith("http") ||
+      portrait.includes(".jpg") ||
+      portrait.includes(".png") ||
+      portrait.includes(".jpeg") ||
+      portrait.includes(".webp") ||
+      portrait.includes(".svg")
+    ) {
+      return (
+        <div className="w-20 h-20 rounded overflow-hidden shrink-0 flex items-center justify-center">
+          <img
+            src={portrait}
+            alt="Speaker Portrait"
+            className="w-full h-full object-contain"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              // Fallback to default avatar if file not found yet
+              (e.target as HTMLElement).style.display = "none";
+            }}
+          />
+        </div>
+      );
+    }
+
     if (portrait === "guide") {
       return (
         <svg className="w-16 h-16 bg-[#172554] border-2 border-amber-500 rounded p-1" viewBox="0 0 32 32">

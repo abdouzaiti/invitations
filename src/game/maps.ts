@@ -42,7 +42,7 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
     npcs: [
       {
         id: "guide",
-        name: "The Elder Guide",
+        name: "Coach Moh",
         portrait: "guide",
         x: 380,
         y: 270,
@@ -355,8 +355,8 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
     npcs: [
       {
         id: "companion",
-        name: "Sarah (Your Companion)", // Sarah represents the targetName, updated from config
-        portrait: "companion",
+        name: "Abdou",
+        portrait: "/abdou.png",
         x: 620,
         y: 260,
         width: 32,

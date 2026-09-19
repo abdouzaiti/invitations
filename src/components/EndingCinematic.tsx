@@ -11,6 +11,24 @@ interface EndingCinematicProps {
 export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) => {
   const [phase, setPhase] = useState<"quest_complete" | "final_intro" | "proposal" | "more_reasons" | "invitation">("quest_complete");
   const [isMuted, setIsMuted] = useState(GAME_AUDIO.getMuteState());
+  const [noOffset, setNoOffset] = useState({ x: 0, y: 0 });
+
+  const dodgeNo = () => {
+    // Generate a lively dodging jump away from current location
+    const minDistance = 90;
+    const maxDistance = 180;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = minDistance + Math.random() * (maxDistance - minDistance);
+    
+    let nextX = noOffset.x + Math.cos(angle) * dist;
+    let nextY = noOffset.y + Math.sin(angle) * dist;
+
+    // Constrain within visible viewport bounds
+    if (Math.abs(nextX) > 180) nextX = -Math.sign(nextX) * (80 + Math.random() * 80);
+    if (Math.abs(nextY) > 140) nextY = -Math.sign(nextY) * (60 + Math.random() * 60);
+
+    setNoOffset({ x: nextX, y: nextY });
+  };
 
   useEffect(() => {
     // Stage 1: Play celebratory fanfare
@@ -134,21 +152,29 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
               “ Wanna go for a ride with me, {GAME_CONFIG.targetName}? ”
             </h1>
 
-            {/* Decision Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full px-2 sm:px-6">
+            {/* Decision Buttons (Side by side with runaway No trigger) */}
+            <div className="flex flex-row items-center justify-center gap-4 sm:gap-6 w-full px-2 sm:px-6 relative min-h-[80px]">
               <button
+                id="btn-choice-yes"
                 onClick={selectAccept}
-                className="w-full py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white font-black text-sm uppercase tracking-widest rounded-xl border-b-4 border-rose-800 shadow-lg active:translate-y-0.5 transition-all cursor-pointer"
+                className="w-36 sm:w-44 py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white font-black text-sm sm:text-base uppercase tracking-widest rounded-xl border-b-4 border-rose-800 shadow-xl active:translate-y-0.5 transition-all cursor-pointer select-none"
               >
-                Let's Ride! 🏍️
+                Yes ❤️
               </button>
 
-              <button
-                onClick={selectTellMeMore}
-                className="w-full py-3.5 bg-slate-900/90 hover:bg-slate-800 text-rose-200 hover:text-white font-extrabold text-sm uppercase tracking-widest rounded-xl border-b-4 border-slate-950 active:translate-y-0.5 transition-all cursor-pointer border border-rose-300/30"
+              <motion.button
+                id="btn-choice-no"
+                animate={{ x: noOffset.x, y: noOffset.y }}
+                transition={{ type: "spring", stiffness: 450, damping: 22 }}
+                onMouseEnter={dodgeNo}
+                onMouseOver={dodgeNo}
+                onTouchStart={dodgeNo}
+                onPointerDown={dodgeNo}
+                onClick={dodgeNo}
+                className="w-36 sm:w-44 py-3.5 bg-slate-900/90 hover:bg-slate-800 text-rose-200 hover:text-white font-extrabold text-sm sm:text-base uppercase tracking-widest rounded-xl border-b-4 border-slate-950 active:translate-y-0.5 transition-all cursor-pointer border border-rose-300/30 select-none"
               >
-                Tell me more 👀
-              </button>
+                No
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -268,14 +294,14 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
                 <div className="flex justify-center h-6 sm:h-8 gap-[1px]">
                   {[1, 2, 4, 1, 3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 4].map((width, i) => (
                     <div
-                      key={i}
+                      key={`barcode-line-${i}`}
                       className="bg-slate-300"
                       style={{ width: `${width}px` }}
                     />
                   ))}
                 </div>
                 <span className="text-[8px] text-slate-400 tracking-wider font-semibold">
-                  Alex & Sarah • see you on the road
+                  {GAME_CONFIG.senderName} & {GAME_CONFIG.targetName} • see you on the road
                 </span>
               </div>
             </div>
