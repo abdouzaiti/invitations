@@ -92,37 +92,39 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ dialogue, onAdvance })
         GAME_AUDIO.playClick();
         onAdvance();
       }}
-      className="absolute bottom-4 left-4 right-auto md:right-auto md:w-[480px] w-[calc(100%-32px)] z-40 cursor-pointer font-mono select-none"
+      className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 w-[calc(100%-20px)] md:w-[480px] max-w-lg z-40 cursor-pointer font-mono select-none"
       style={{ imageRendering: "pixelated" }}
     >
       {/* Classic Nested Pixel Double-Border Panel */}
-      <div className="bg-[#0f172a] text-slate-100 border-4 border-amber-600 rounded p-4 shadow-2xl relative">
-        <div className="absolute inset-0.5 border-2 border-[#1e293b] rounded pointer-events-none" />
+      <div className="bg-[#0f172a]/95 backdrop-blur-md text-slate-100 border-4 border-amber-500 rounded-xl p-3 md:p-4 shadow-2xl relative">
+        <div className="absolute inset-0.5 border-2 border-[#1e293b] rounded-lg pointer-events-none" />
 
         {/* Header containing Portrait & Name */}
-        <div className="flex items-center gap-4 border-b border-slate-700/60 pb-3 mb-3 relative z-10">
-          {renderPortrait(dialogue.npcPortrait)}
+        <div className="flex items-center gap-3 border-b border-slate-700/60 pb-2 mb-2 relative z-10">
+          <div className="shrink-0 scale-90 md:scale-100 origin-left">
+            {renderPortrait(dialogue.npcPortrait)}
+          </div>
           
           <div className="flex flex-col">
-            <span className="text-amber-400 font-bold tracking-widest text-xs uppercase">
+            <span className="text-amber-400 font-bold tracking-widest text-[10px] md:text-xs uppercase">
               Speaker
             </span>
-            <span className="text-sm md:text-base font-extrabold text-white tracking-wider">
+            <span className="text-xs md:text-base font-extrabold text-white tracking-wider">
               {dialogue.npcName}
             </span>
           </div>
         </div>
 
         {/* Text Container */}
-        <div className="min-h-[50px] text-xs md:text-sm text-slate-200 leading-relaxed pl-1 pr-4 relative z-10 font-medium">
+        <div className="min-h-[44px] md:min-h-[50px] text-xs md:text-sm text-slate-200 leading-relaxed pl-1 pr-12 relative z-10 font-medium">
           “ {dialogue.typedText} ”
         </div>
 
         {/* Blinking Skip indicator */}
         {!dialogue.isTyping && (
-          <div className="absolute bottom-3 right-4 text-amber-500 text-xs animate-bounce flex items-center gap-1">
-            <span className="text-[10px] tracking-wider text-amber-500/70">NEXT</span>
-            <span className="text-base leading-none">▼</span>
+          <div className="absolute bottom-2.5 right-3 text-amber-400 text-xs animate-pulse flex items-center gap-1 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40">
+            <span className="text-[9px] font-black tracking-wider text-amber-300">TAP / NEXT</span>
+            <span className="text-xs leading-none">▼</span>
           </div>
         )}
       </div>

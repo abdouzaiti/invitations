@@ -1,7 +1,7 @@
 import { AreaId, Direction, Position, NPC, ItemObject, DialogueState, Quest } from "./types";
 import { MAP_AREAS, MapArea } from "./maps";
 import { GameRenderer } from "./renderer";
-import { GAME_CONFIG } from "./config";
+import { GAME_CONFIG, ROMANTIC_COLORS } from "./config";
 import { GAME_AUDIO } from "./audio";
 
 export interface EngineState {
@@ -28,6 +28,7 @@ export class GameEngine {
   // Input states
   private keys: Record<string, boolean> = {};
   private activeTouchDir: Direction | null = null;
+  private touchVector: { x: number; y: number } | null = null;
 
   // Simulation variables
   private camera: Position = { x: 0, y: 0 };
@@ -148,11 +149,31 @@ export class GameEngine {
   };
 
   /**
-   * Virtual Joystick triggers for mobile gameplay
+   * Virtual Joystick / D-pad triggers for mobile gameplay
    */
   public setMobileDirection(dir: Direction | null) {
     if (this.state.dialogue) return;
     this.activeTouchDir = dir;
+    this.touchVector = null;
+  }
+
+  public setMobileVector(vx: number, vy: number) {
+    if (this.state.dialogue) return;
+    if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
+      this.touchVector = null;
+      this.activeTouchDir = null;
+    } else {
+      this.touchVector = { x: vx, y: vy };
+      if (Math.abs(vx) > Math.abs(vy)) {
+        this.state.playerDirection = vx > 0 ? "right" : "left";
+      } else {
+        this.state.playerDirection = vy > 0 ? "down" : "up";
+      }
+    }
+  }
+
+  public setZoomScale(scale: number) {
+    this.renderer.zoomScale = scale;
   }
 
   public triggerMobileInteract() {
@@ -215,7 +236,10 @@ export class GameEngine {
     }
 
     // Resolve mobile touch input override
-    if (this.activeTouchDir) {
+    if (this.touchVector) {
+      dx = this.touchVector.x;
+      dy = this.touchVector.y;
+    } else if (this.activeTouchDir) {
       dx = 0;
       dy = 0;
       this.state.playerDirection = this.activeTouchDir;
@@ -637,10 +661,10 @@ export class GameEngine {
     const area = this.areas[this.state.currentArea];
     
     // Pick matching base ground/sky color for the outer camera border void
-    let bgColor = "#1e3a1e"; // Area 1 & 2 cozy grass
-    if (area.id === 3) bgColor = "#142214"; // Area 3 darker highway grass
-    else if (area.id === 4) bgColor = "#0f172a"; // Area 4 inside garage
-    else if (area.id === 5) bgColor = "#130a1c"; // Area 5 mountain peak grass shadow
+    let bgColor = ROMANTIC_COLORS.blushPink; // Area 1 & 2 cozy field
+    if (area.id === 3) bgColor = ROMANTIC_COLORS.blushPink; // Area 3
+    else if (area.id === 4) bgColor = ROMANTIC_COLORS.cream; // Area 4 inside garage
+    else if (area.id === 5) bgColor = ROMANTIC_COLORS.softLavender; // Area 5 mountain peak shadow
     
     this.renderer.clear(bgColor);
 
@@ -685,6 +709,9 @@ export class GameEngine {
       this.isWalking,
       this.camera
     );
+
+    // 6.5 Draw Petals
+    this.renderer.drawPetals(area.width, area.height);
 
     // 7. Draw Sunset overlay spark particles
     if (this.state.currentArea === 5) {

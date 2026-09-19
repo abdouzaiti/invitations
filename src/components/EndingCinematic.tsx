@@ -46,7 +46,7 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#090b14] px-6 text-center select-none font-mono text-slate-100 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fce7f3] px-6 text-center select-none font-mono text-slate-800 overflow-y-auto">
       {/* Background sunset ambient glows */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-orange-600/10 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-indigo-600/10 blur-[100px] pointer-events-none" />
@@ -68,18 +68,18 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.8 }}
-            className="flex flex-col items-center gap-4"
+            className="flex flex-col items-center gap-4 px-2"
           >
             <motion.h1
-              initial={{ letterSpacing: "0.1em" }}
-              animate={{ letterSpacing: "0.2em" }}
+              initial={{ letterSpacing: "0.05em" }}
+              animate={{ letterSpacing: "0.15em" }}
               transition={{ duration: 2 }}
-              className="text-emerald-400 font-extrabold text-3xl md:text-5xl uppercase tracking-widest border-y-2 border-emerald-400 py-3 px-8"
-              style={{ textShadow: "0 0 15px rgba(52,211,153,0.35)" }}
+              className="text-rose-700 font-extrabold text-2xl sm:text-4xl md:text-5xl uppercase tracking-wider md:tracking-widest border-y-2 border-rose-700 py-3 px-6 md:px-8"
+              style={{ textShadow: "0 0 15px rgba(225,29,72,0.2)" }}
             >
               Quest Completed!
             </motion.h1>
-            <p className="text-slate-400 text-sm tracking-widest uppercase">
+            <p className="text-slate-700 text-xs sm:text-sm tracking-widest uppercase font-semibold">
               You found all scattered memories.
             </p>
           </motion.div>
@@ -93,12 +93,12 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col items-center gap-3 max-w-md"
+            className="flex flex-col items-center gap-3 max-w-md px-2"
           >
-            <p className="text-amber-400 font-extrabold text-xs uppercase tracking-widest">
+            <p className="text-rose-700 font-extrabold text-xs uppercase tracking-widest">
               A New Quest Unlocks
             </p>
-            <h2 className="text-lg md:text-2xl text-slate-200 font-semibold leading-relaxed px-4">
+            <h2 className="text-lg md:text-2xl text-slate-800 font-semibold leading-relaxed px-4">
               “ But there is one final quest... ”
             </h2>
             <button
@@ -106,7 +106,7 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
                 GAME_AUDIO.playClick();
                 setPhase("proposal");
               }}
-              className="mt-6 px-6 py-2 bg-slate-800 border-2 border-slate-600 hover:border-amber-500 rounded text-xs text-slate-300 hover:text-white uppercase tracking-widest cursor-pointer transition-all"
+              className="mt-6 px-6 py-2.5 bg-slate-900 border-2 border-rose-400/50 hover:border-rose-500 rounded text-xs text-rose-200 hover:text-white uppercase tracking-widest cursor-pointer transition-all active:scale-95 shadow-md"
             >
               Begin
             </button>
@@ -120,34 +120,34 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-col items-center max-w-lg"
+            className="flex flex-col items-center max-w-lg w-full px-2"
           >
             <motion.div
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="text-5xl md:text-6xl mb-6 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]"
+              className="text-5xl md:text-6xl mb-4 md:mb-6 filter drop-shadow-[0_0_15px_rgba(225,29,72,0.3)]"
             >
               🏍️❤️
             </motion.div>
 
-            <h1 className="text-2xl md:text-4xl font-extrabold text-white leading-snug px-4 text-center tracking-wide mb-12">
+            <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-slate-900 leading-snug px-2 text-center tracking-wide mb-8 md:mb-12">
               “ Wanna go for a ride with me, {GAME_CONFIG.targetName}? ”
             </h1>
 
             {/* Decision Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 w-full px-6">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full px-2 sm:px-6">
               <button
                 onClick={selectAccept}
-                className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#090b14] font-black text-sm uppercase tracking-widest rounded border-b-4 border-amber-800 shadow-lg hover:shadow-amber-500/10 active:translate-y-1 transition-all cursor-pointer"
+                className="w-full py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white font-black text-sm uppercase tracking-widest rounded-xl border-b-4 border-rose-800 shadow-lg active:translate-y-0.5 transition-all cursor-pointer"
               >
                 Let's Ride! 🏍️
               </button>
 
               <button
                 onClick={selectTellMeMore}
-                className="flex-1 py-3 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-extrabold text-sm uppercase tracking-widest rounded border-b-4 border-slate-950 active:translate-y-1 transition-all cursor-pointer"
+                className="w-full py-3.5 bg-slate-900/90 hover:bg-slate-800 text-rose-200 hover:text-white font-extrabold text-sm uppercase tracking-widest rounded-xl border-b-4 border-slate-950 active:translate-y-0.5 transition-all cursor-pointer border border-rose-300/30"
               >
-                Hmm... Tell me more 👀
+                Tell me more 👀
               </button>
             </div>
           </motion.div>
@@ -160,34 +160,34 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center max-w-md font-mono"
+            className="flex flex-col items-center max-w-md w-full px-3 font-mono"
           >
-            <h3 className="text-amber-400 font-bold text-xs uppercase tracking-widest mb-6">
+            <h3 className="text-rose-700 font-bold text-xs uppercase tracking-widest mb-6">
               The Journey Details
             </h3>
 
-            <div className="flex flex-col gap-3 text-left w-full px-6 text-sm text-slate-300 mb-8 border-l-2 border-amber-500/40 pl-4 py-1">
+            <div className="flex flex-col gap-3 text-left w-full px-4 text-sm text-slate-800 mb-8 border-l-2 border-rose-400 pl-4 py-1 bg-white/40 backdrop-blur-sm rounded-r-lg shadow-sm">
               <p className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" /> Good music.
+                <Sparkles className="w-4 h-4 text-rose-600" /> Good music.
               </p>
               <p className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" /> An open, scenic highway.
+                <Sparkles className="w-4 h-4 text-rose-600" /> An open, scenic highway.
               </p>
               <p className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" /> A vintage motorcycle.
+                <Sparkles className="w-4 h-4 text-rose-600" /> A vintage motorcycle.
               </p>
-              <p className="flex items-center gap-2 font-bold text-amber-300">
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500" /> And you.
+              <p className="flex items-center gap-2 font-bold text-rose-900">
+                <Heart className="w-4 h-4 text-rose-600 fill-rose-600" /> And you.
               </p>
             </div>
 
-            <p className="text-base font-extrabold text-slate-200 mb-8">
+            <p className="text-base font-extrabold text-slate-900 mb-6">
               So... let's ride?
             </p>
 
             <button
               onClick={selectAccept}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#090b14] font-black text-sm uppercase tracking-widest rounded border-b-4 border-amber-800 shadow-md active:translate-y-1 transition-all cursor-pointer"
+              className="w-full py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white font-black text-sm uppercase tracking-widest rounded-xl border-b-4 border-rose-800 shadow-md active:translate-y-0.5 transition-all cursor-pointer"
             >
               Let's Ride! 🏍️
             </button>
@@ -202,20 +202,20 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center max-w-md w-full relative z-10"
           >
-            <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold uppercase tracking-widest mb-4">
-              <Heart className="w-4 h-4 fill-rose-500 animate-pulse" /> Final Quest Unlocked
+            <div className="flex items-center gap-1.5 text-rose-700 text-xs font-bold uppercase tracking-widest mb-4">
+              <Heart className="w-4 h-4 fill-rose-600 animate-pulse" /> Final Quest Unlocked
             </div>
 
             {/* Retro Ticket Design */}
-            <div className="bg-[#10192e] text-slate-100 border-4 border-amber-500 rounded-lg p-6 w-full shadow-2xl relative overflow-hidden mb-6">
+            <div className="bg-[#10192e] text-slate-100 border-4 border-amber-500 rounded-2xl p-4 sm:p-6 w-full shadow-2xl relative overflow-hidden mb-6">
               {/* Ticket edge notch cutouts */}
-              <div className="absolute top-1/2 -left-3 w-6 h-6 rounded-full bg-[#090b14] border-r-4 border-amber-500 transform -translate-y-1/2" />
-              <div className="absolute top-1/2 -right-3 w-6 h-6 rounded-full bg-[#090b14] border-l-4 border-amber-500 transform -translate-y-1/2" />
+              <div className="absolute top-1/2 -left-3 w-6 h-6 rounded-full bg-[#fce7f3] border-r-4 border-amber-500 transform -translate-y-1/2" />
+              <div className="absolute top-1/2 -right-3 w-6 h-6 rounded-full bg-[#fce7f3] border-l-4 border-amber-500 transform -translate-y-1/2" />
               
-              <div className="absolute inset-0.5 border-2 border-[#1e293b] rounded-lg pointer-events-none" />
+              <div className="absolute inset-0.5 border-2 border-[#1e293b] rounded-xl pointer-events-none" />
 
               <div className="text-center border-b border-dashed border-slate-700/80 pb-4 mb-5">
-                <h2 className="text-amber-400 font-extrabold text-xl tracking-widest uppercase font-black">
+                <h2 className="text-amber-400 font-extrabold text-lg sm:text-xl tracking-widest uppercase font-black">
                   THE RIDE 🏍️
                 </h2>
                 <span className="text-[9px] text-slate-400 tracking-widest uppercase">
@@ -224,48 +224,48 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
               </div>
 
               {/* Ticket details */}
-              <div className="flex flex-col gap-4 text-left px-2 font-mono">
+              <div className="flex flex-col gap-3.5 text-left px-1 sm:px-2 font-mono">
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-[9px] text-slate-400 tracking-wider uppercase font-bold">Date</span>
-                    <p className="text-sm font-extrabold text-white tracking-wide">
+                    <p className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                       {GAME_CONFIG.dateInfo.date}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-[9px] text-slate-400 tracking-wider uppercase font-bold">Time</span>
-                    <p className="text-sm font-extrabold text-white tracking-wide">
+                    <p className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                       {GAME_CONFIG.dateInfo.time}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-[9px] text-slate-400 tracking-wider uppercase font-bold">Meeting Point</span>
-                    <p className="text-sm font-extrabold text-amber-200 tracking-wide">
+                    <p className="text-xs sm:text-sm font-extrabold text-amber-200 tracking-wide">
                       {GAME_CONFIG.dateInfo.meetingPoint}
                     </p>
                   </div>
                 </div>
 
-                <div className="border-t border-slate-850 pt-3 mt-1 text-center">
+                <div className="border-t border-slate-800 pt-3 mt-1 text-center">
                   <span className="text-[9px] text-slate-400 tracking-wider uppercase font-bold">Destination?</span>
-                  <p className="text-sm italic font-extrabold text-amber-400 mt-0.5">
+                  <p className="text-xs sm:text-sm italic font-extrabold text-amber-400 mt-0.5">
                     “ Somewhere worth remembering ”
                   </p>
                 </div>
               </div>
 
               {/* Barcode representation */}
-              <div className="mt-6 flex flex-col items-center gap-1 opacity-75">
-                <div className="flex justify-center h-8 gap-[1px]">
+              <div className="mt-5 flex flex-col items-center gap-1 opacity-75">
+                <div className="flex justify-center h-6 sm:h-8 gap-[1px]">
                   {[1, 2, 4, 1, 3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 4].map((width, i) => (
                     <div
                       key={i}
@@ -274,14 +274,14 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
                     />
                   ))}
                 </div>
-                <span className="text-[8px] text-slate-500 tracking-wider font-semibold">
+                <span className="text-[8px] text-slate-400 tracking-wider font-semibold">
                   Alex & Sarah • see you on the road
                 </span>
               </div>
             </div>
 
-            <h2 className="text-lg md:text-xl font-bold text-slate-200 tracking-wider mb-6 flex items-center gap-2">
-              See you on the road. <Heart className="w-5 h-5 text-rose-500 fill-rose-500 inline" />
+            <h2 className="text-base sm:text-xl font-bold text-slate-900 tracking-wider mb-6 flex items-center gap-2">
+              See you on the road. <Heart className="w-4 sm:w-5 h-4 sm:h-5 text-rose-600 fill-rose-600 inline" />
             </h2>
 
             {/* Restart Button */}
@@ -291,7 +291,7 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
                 GAME_AUDIO.stopEngineSound();
                 onRestart();
               }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 rounded text-xs text-slate-300 hover:text-white uppercase tracking-wider cursor-pointer active:scale-95 transition-all"
+              className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-rose-400/40 rounded-xl text-xs text-rose-200 hover:text-white uppercase tracking-wider cursor-pointer active:scale-95 transition-all shadow-lg"
             >
               <RefreshCw className="w-4 h-4" /> Restart Adventure
             </button>

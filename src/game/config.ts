@@ -31,6 +31,18 @@ export interface GamePersonalization {
   };
 }
 
+export const ROMANTIC_COLORS = {
+  blushPink: "#fce7f3",
+  pastelPink: "#fbcfe8",
+  rosePink: "#f472b6",
+  dustyRose: "#db2777",
+  softLavender: "#e9d5ff",
+  cream: "#fffbeb",
+  warmWhite: "#fffdf0",
+  deepBurgundy: "#881337",
+  darkPlum: "#4a044e"
+};
+
 export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
   targetName: "Sarah", // Change this to her name!
   senderName: "Alex",  // Change this to your name!

@@ -10,10 +10,12 @@ import { OpeningCinematic } from "./components/OpeningCinematic";
 import { EndingCinematic } from "./components/EndingCinematic";
 import { VirtualControls } from "./components/VirtualControls";
 import { Sparkles, Volume2, VolumeX, BookOpen, RotateCcw } from "lucide-react";
+import { Direction } from "./game/types";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<GameEngine | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Core Game State synced from Engine
   const [gameState, setGameState] = useState<EngineState | null>(null);
@@ -32,7 +34,6 @@ export default function App() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Handle initial state loads or overrides from sessionStorage if any
     const engine = new GameEngine(canvas, (updatedState) => {
       setGameState(updatedState);
     });
@@ -40,26 +41,27 @@ export default function App() {
     engineRef.current = engine;
     engine.start();
 
-    // Resize handler to fit canvas scale perfectly within viewport boundaries with NO scroll
+    // Handle high-DPI crisp pixel scaling & responsive mobile bounds
     const handleResize = () => {
-      if (canvas) {
-        const parent = canvas.parentElement;
-        if (parent) {
-          const maxWidth = Math.min(960, parent.clientWidth);
-          const maxHeight = window.innerHeight * 0.85;
+      if (!canvas || !containerRef.current) return;
+      const container = containerRef.current;
+      const availableWidth = container.clientWidth;
+      const availableHeight = container.clientHeight;
 
-          let width = maxWidth;
-          let height = width / 1.3;
+      // Adjust canvas resolution dynamically
+      const width = availableWidth;
+      const height = availableHeight;
 
-          // If height overflows viewport heights, scale down proportionally to avoid scroll
-          if (height > maxHeight) {
-            height = maxHeight;
-            width = height * 1.3;
-          }
+      canvas.width = width;
+      canvas.height = height;
 
-          canvas.width = width;
-          canvas.height = height;
-        }
+      // Set optimal zoom scale for small mobile screens vs desktop
+      if (width < 540) {
+        engine.setZoomScale(1.05); // Chunky, clear pixel-art for mobile phones
+      } else if (width < 800) {
+        engine.setZoomScale(0.95);
+      } else {
+        engine.setZoomScale(0.85); // Cinematic wider view for desktop
       }
     };
 
@@ -80,7 +82,6 @@ export default function App() {
 
     const currentCount = gameState.discoveredMemories.length;
     if (currentCount > previousDiscoveredCount) {
-      // Find the newly added memory
       const newId = gameState.discoveredMemories[currentCount - 1];
       const matchingMemory = GAME_CONFIG.memories.find((m) => m.id === newId);
       if (matchingMemory) {
@@ -98,26 +99,42 @@ export default function App() {
 
   const handleRestart = () => {
     GAME_AUDIO.playClick();
-    // Reset React storage variables
     setRecentDiscoveredMemory(null);
     setPreviousDiscoveredCount(0);
     setIsJournalOpen(false);
 
-    // Recreate engine cleanly
     if (engineRef.current) {
       engineRef.current.destroy();
     }
     setHasStarted(false);
-    // Let the user go back to opening cinematic for maximum atmosphere!
     setTimeout(() => {
       setHasStarted(true);
     }, 100);
   };
 
+  // Virtual control inputs
+  const handleDirectionChange = (dir: Direction | null) => {
+    if (engineRef.current) {
+      engineRef.current.setMobileDirection(dir);
+    }
+  };
+
+  const handleVectorChange = (vx: number, vy: number) => {
+    if (engineRef.current) {
+      engineRef.current.setMobileVector(vx, vy);
+    }
+  };
+
+  const handleInteract = () => {
+    if (engineRef.current) {
+      engineRef.current.triggerMobileInteract();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#1e3a1e] text-slate-100 flex flex-col items-center justify-center p-2 sm:p-4 select-none overflow-hidden font-mono touch-none">
-      {/* Cozy earthy shadow gradients around the edges */}
-      <div className="absolute inset-0 bg-radial-[circle_at_center,transparent_40%,rgba(15,23,42,0.35)] pointer-events-none" />
+    <div className="fixed inset-0 w-full h-full bg-[#fce7f3] text-slate-800 flex flex-col items-center justify-between select-none overflow-hidden font-mono touch-none">
+      {/* Soft romantic ambient background warmth */}
+      <div className="absolute inset-0 bg-radial-[circle_at_center,transparent_50%,rgba(244,114,182,0.15)] pointer-events-none" />
 
       <AnimatePresence>
         {/* Step 1: Cinematic Narrative Opening Screen */}
@@ -137,80 +154,101 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Main Game Interface Board */}
+      {/* Main Game Interface */}
       {hasStarted && !gameState?.isGameFinished && (
-        <div className="w-full max-w-4xl flex flex-col items-center relative z-10">
-
-          {/* Interactive Top-down Canvas Game Frame */}
-          <div className="w-full bg-slate-950 rounded-lg relative shadow-2xl overflow-hidden aspect-[1.3] border-4 border-slate-900/60">
-            <canvas
-              ref={canvasRef}
-              className="block w-full h-full"
-              style={{ imageRendering: "pixelated" }}
-            />
-
-            {/* Screen static scanlines overlay for that cozy cathode arcade feel */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.12)_50%)] bg-[size:100%_4px] pointer-events-none opacity-40" />
-
-            {/* Dynamic Active Quest HUD Panel */}
+        <div className="w-full h-full flex flex-col justify-between relative z-10 overflow-hidden bg-[#fce7f3] p-1 sm:p-3">
+          
+          {/* TOP HUD BAR */}
+          <header className="w-full flex items-center justify-between gap-2 px-2 py-1.5 z-20 shrink-0">
+            {/* Quest Tracker Pill */}
             {gameState?.activeQuest && (
-              <div className="absolute top-4 left-4 z-20 pointer-events-none max-w-[240px]">
-                <div className="bg-slate-900/85 backdrop-blur-sm border border-amber-500/40 rounded p-2 shadow-md">
-                  <div className="flex items-center gap-1.5 text-amber-400 text-[10px] font-extrabold uppercase tracking-widest">
-                    <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
-                    <span>Quest</span>
-                  </div>
-                  <h4 className="text-white text-xs font-black tracking-wide mt-1 uppercase truncate">
+              <div className="bg-slate-900/90 backdrop-blur-md border border-amber-500/50 rounded-xl px-2.5 py-1.5 shadow-md flex items-center gap-2 max-w-[70%] sm:max-w-xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+                <div className="flex flex-col truncate">
+                  <span className="text-[9px] font-black text-amber-300 uppercase tracking-wider truncate">
                     {gameState.activeQuest.name}
-                  </h4>
-                  <p className="text-[9px] text-slate-300 leading-normal mt-0.5 font-medium">
+                  </span>
+                  <span className="text-[8px] text-slate-300 font-medium truncate">
                     {gameState.activeQuest.id === "find_memories"
-                      ? `Collect glowing polaroids: (${gameState.discoveredMemories.length}/4)`
+                      ? `Memories: ${gameState.discoveredMemories.length}/4`
                       : gameState.activeQuest.description}
-                  </p>
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* Bottom-left classic typewriter Dialogue Panel overlay */}
+            {/* Quick Actions at Top Right */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  GAME_AUDIO.playClick();
+                  setIsJournalOpen(true);
+                }}
+                className="flex items-center gap-1 bg-slate-900/90 hover:bg-slate-800 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl text-[10px] font-bold shadow-md transition-all active:scale-95"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                <span>{gameState?.discoveredMemories.length || 0}/4</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleMute}
+                className="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-rose-300 border border-rose-300/40 rounded-xl shadow-md transition-all active:scale-95"
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX className="w-3.5 h-3.5 text-slate-400" /> : <Volume2 className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            </div>
+          </header>
+
+          {/* MAIN GAME CANVAS FRAME */}
+          <main
+            ref={containerRef}
+            className="flex-1 w-full relative rounded-2xl border-4 border-rose-300/60 bg-[#fce7f3] shadow-2xl overflow-hidden my-1 flex items-center justify-center"
+          >
+            <canvas
+              ref={canvasRef}
+              className="block w-full h-full outline-none focus:outline-none bg-[#fce7f3]"
+              style={{ imageRendering: "pixelated" }}
+            />
+
+            {/* CRT Arcade Scanline subtle texture */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.08)_50%)] bg-[size:100%_4px] pointer-events-none opacity-30" />
+
+            {/* Dialogue Box Overlay */}
             {gameState?.dialogue && (
               <DialogueBox
                 dialogue={gameState.dialogue}
-                onAdvance={() => {
-                  if (engineRef.current) {
-                    engineRef.current.triggerMobileInteract();
-                  }
-                }}
+                onAdvance={handleInteract}
               />
             )}
-          </div>
+          </main>
 
-          {/* Virtual D-pad Controls Overlay / Handheld Physical Deck */}
-          <VirtualControls
-            onDirectionChange={(dir) => {
-              if (engineRef.current) {
-                engineRef.current.setMobileDirection(dir);
-              }
-            }}
-            onInteract={() => {
-              if (engineRef.current) {
-                engineRef.current.triggerMobileInteract();
-              }
-            }}
-          />
+          {/* MOBILE VIRTUAL CONTROLLER & DESKTOP HINTS */}
+          <footer className="w-full shrink-0 z-20 pb-safe">
+            <VirtualControls
+              onDirectionChange={handleDirectionChange}
+              onVectorChange={handleVectorChange}
+              onInteract={handleInteract}
+              onOpenJournal={() => setIsJournalOpen(true)}
+              onToggleMute={handleToggleMute}
+              isMuted={isMuted}
+              discoveredCount={gameState?.discoveredMemories.length || 0}
+              totalMemories={4}
+              isDialogueOpen={!!gameState?.dialogue}
+              onRestart={handleRestart}
+            />
 
-          {/* Interaction Keyboard Guidelines Footer */}
-          <div className="mt-3 flex items-center justify-center gap-4 text-slate-500 text-[10px] tracking-wide uppercase text-center">
-            <span>💻 MOVE: WASD / Arrows</span>
-            <span>•</span>
-            <span>INTERACT: SPACE / E / Enter</span>
-            <span>•</span>
-            <span>📱 MOBILE: D-pad & action button</span>
-          </div>
+            {/* Desktop Keyboard Helper Footer */}
+            <div className="hidden md:flex items-center justify-center gap-4 text-slate-600 text-[9px] tracking-wider uppercase text-center pb-1">
+              <span>⌨️ Movement: WASD / Arrow Keys</span>
+              <span>•</span>
+              <span>Interact: SPACE / E / Enter</span>
+            </div>
+          </footer>
         </div>
       )}
-
-
 
       {/* Dynamic Popups and Modals */}
       <AnimatePresence>
@@ -238,3 +276,4 @@ export default function App() {
     </div>
   );
 }
+

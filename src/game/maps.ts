@@ -81,8 +81,12 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       { type: "flower", x: 120, y: 180, color: "#f43f5e" },
       { type: "flower", x: 140, y: 190, color: "#ec4899" },
       { type: "flower", x: 130, y: 210, color: "#f43f5e" },
+      { type: "flower", x: 160, y: 200, color: "#eab308" },
+      { type: "flower", x: 180, y: 190, color: "#a855f7" },
       { type: "flower", x: 480, y: 280, color: "#eab308" },
       { type: "flower", x: 510, y: 290, color: "#3b82f6" },
+      { type: "flower", x: 530, y: 270, color: "#f43f5e" },
+      { type: "flower", x: 550, y: 280, color: "#ec4899" },
       // Trees
       { type: "tree", x: 60, y: 60 },
       { type: "tree", x: 120, y: 50 },

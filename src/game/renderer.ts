@@ -1,5 +1,5 @@
 import { AreaId, Direction, NPC, ItemObject } from "./types";
-import { GAME_CONFIG } from "./config";
+import { GAME_CONFIG, ROMANTIC_COLORS } from "./config";
 import { MapArea } from "./maps";
 
 export class GameRenderer {
@@ -39,16 +39,16 @@ export class GameRenderer {
     ctx.translate(-camera.x, -camera.y);
 
     if (areaId === 1 || areaId === 2) {
-      // Village or Memory Path: Cozy Grass tiles
-      ctx.fillStyle = "#1e3a1e"; // Base grass color
+      // Village or Memory Path: Cozy Romantic field
+      ctx.fillStyle = ROMANTIC_COLORS.blushPink; // Base grass color
       ctx.fillRect(0, 0, mapWidth, mapHeight);
 
       // Draw subtle grassy patterns & pathways
-      ctx.fillStyle = "#1b331b";
+      ctx.fillStyle = ROMANTIC_COLORS.pastelPink;
       for (let gx = 0; gx < mapWidth; gx += 64) {
         for (let gy = 0; gy < mapHeight; gy += 64) {
           if ((gx + gy) % 128 === 0) {
-            // Tiny grass blades
+            // Tiny grass blades (now flower details)
             ctx.fillRect(gx + 10, gy + 15, 4, 8);
             ctx.fillRect(gx + 14, gy + 19, 4, 4);
             ctx.fillRect(gx + 40, gy + 45, 4, 8);
@@ -56,8 +56,8 @@ export class GameRenderer {
         }
       }
 
-      // Draw dirt paths
-      ctx.fillStyle = "#3f3020"; // Dark dirt
+      // Draw romantic paths
+      ctx.fillStyle = ROMANTIC_COLORS.cream; // Soft path color
       if (areaId === 1) {
         // Broad central horizontal village pathway running to the edges
         ctx.fillRect(0, 290, mapWidth, 80);
@@ -76,11 +76,11 @@ export class GameRenderer {
       }
     } else if (areaId === 3) {
       // The Road
-      ctx.fillStyle = "#142214"; // Even darker grass around the highway
+      ctx.fillStyle = ROMANTIC_COLORS.blushPink; // Grass around the highway
       ctx.fillRect(0, 0, mapWidth, mapHeight);
 
       // Grass details
-      ctx.fillStyle = "#101d10";
+      ctx.fillStyle = ROMANTIC_COLORS.pastelPink;
       for (let gx = 0; gx < mapWidth; gx += 80) {
         for (let gy = 0; gy < mapHeight; gy += 80) {
           ctx.fillRect(gx + 15, gy + 20, 4, 8);
@@ -88,7 +88,7 @@ export class GameRenderer {
       }
 
       // Large highway asphalt road
-      ctx.fillStyle = "#1f2937"; // Asphalt grey
+      ctx.fillStyle = "#f5f5f5"; // Lighter asphalt grey
       ctx.fillRect(0, 260, mapWidth, 140);
 
       // Road shoulder lines (white)
@@ -110,14 +110,14 @@ export class GameRenderer {
       ctx.fillRect(560, 120, 180, 140);
     } else if (areaId === 4) {
       // The Inside Garage
-      ctx.fillStyle = "#0f172a"; // Dark surrounding
+      ctx.fillStyle = ROMANTIC_COLORS.darkPlum; // Dark surrounding
       ctx.fillRect(0, 0, mapWidth, mapHeight);
 
       // Garage concrete tile grid
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = ROMANTIC_COLORS.cream;
       ctx.fillRect(40, 60, mapWidth - 80, mapHeight - 100);
 
-      ctx.fillStyle = "#111827"; // Grid grooves
+      ctx.fillStyle = ROMANTIC_COLORS.softLavender; // Grid grooves
       for (let gx = 40; gx < mapWidth - 40; gx += 40) {
         ctx.fillRect(gx, 60, 2, mapHeight - 100);
       }
@@ -126,7 +126,7 @@ export class GameRenderer {
       }
 
       // Entrance rug at bottom center
-      ctx.fillStyle = "#475569";
+      ctx.fillStyle = ROMANTIC_COLORS.rosePink;
       ctx.fillRect(mapWidth / 2 - 50, mapHeight - 65, 100, 25);
     } else if (areaId === 5) {
       // The Overlook: Beautiful sunset background behind the road
@@ -250,17 +250,22 @@ export class GameRenderer {
 
       if (dec.type === "tree") {
         // High-fidelity procedurally drawn pixel-art pine tree
+        ctx.save();
+        ctx.translate(16, 20);
+        ctx.scale(1.8, 1.8);
+        ctx.translate(-16, -20);
+
         // Brown trunk
-        ctx.fillStyle = "#3b1e08";
+        ctx.fillStyle = "#57534e";
         ctx.fillRect(12, 40, 8, 20);
         
         // Base dark foliage shadow circle
-        ctx.fillStyle = "#0c1f0c";
+        ctx.fillStyle = ROMANTIC_COLORS.dustyRose;
         ctx.fillRect(2, 38, 28, 4);
 
         // Pine triangles (3 layers)
         // Layer 3 (Bottom)
-        ctx.fillStyle = "#143a14";
+        ctx.fillStyle = ROMANTIC_COLORS.rosePink;
         ctx.beginPath();
         ctx.moveTo(16, 15);
         ctx.lineTo(-4 + sway * 0.1, 40);
@@ -269,7 +274,7 @@ export class GameRenderer {
         ctx.fill();
 
         // Layer 2 (Middle)
-        ctx.fillStyle = "#1b4d1b";
+        ctx.fillStyle = ROMANTIC_COLORS.pastelPink;
         ctx.beginPath();
         ctx.moveTo(16, 5);
         ctx.lineTo(0 + sway * 0.3, 26);
@@ -278,7 +283,7 @@ export class GameRenderer {
         ctx.fill();
 
         // Layer 1 (Top)
-        ctx.fillStyle = "#226622";
+        ctx.fillStyle = ROMANTIC_COLORS.blushPink;
         ctx.beginPath();
         ctx.moveTo(16 + sway * 0.5, -5);
         ctx.lineTo(4 + sway * 0.5, 14);
@@ -287,10 +292,11 @@ export class GameRenderer {
         ctx.fill();
 
         // Subtle highlight dots (simulating 16-bit texturing)
-        ctx.fillStyle = "#388638";
+        ctx.fillStyle = ROMANTIC_COLORS.warmWhite;
         ctx.fillRect(10 + sway * 0.5, 8, 3, 3);
         ctx.fillRect(18 + sway * 0.3, 20, 4, 3);
         ctx.fillRect(8 + sway * 0.1, 32, 3, 4);
+        ctx.restore();
       } else if (dec.type === "house") {
         // Village house or Garage
         // Shadow base
@@ -939,6 +945,21 @@ export class GameRenderer {
     ctx.restore();
   }
 
+
+  /**
+   * Draw subtle, romantic falling petals
+   */
+  public drawPetals(mapWidth: number, mapHeight: number) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    
+    this.ctx.fillStyle = ROMANTIC_COLORS.pastelPink;
+    const numPetals = 40;
+    for (let i = 0; i < numPetals; i++) {
+        const x = (i * 100 + this.animFrame * 0.5) % mapWidth;
+        const y = (i * 50 + this.animFrame * 0.2) % mapHeight;
+        this.ctx.fillRect(x, y, 2, 2);
+    }
+  }
 
   /**
    * Draw beautiful, detailed retro-style barrier gates that block chapter transitions
