@@ -1,0 +1,6 @@
+{
+  "name": "The Ride",
+  "description": "An interactive retro 2D pixel-art RPG adventure designed to collect memories and discover a surprise invitation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
