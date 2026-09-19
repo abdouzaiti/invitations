@@ -6,6 +6,7 @@ export class GameRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private animFrame = 0;
+  public zoomScale = 0.8; // Decreased zoom from 1.0 to 0.8 to see more map space
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -34,6 +35,7 @@ export class GameRenderer {
   ) {
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(-camera.x, -camera.y);
 
     if (areaId === 1 || areaId === 2) {
@@ -237,6 +239,7 @@ export class GameRenderer {
   ) {
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(-camera.x, -camera.y);
 
     const sway = Math.sin(this.animFrame * 0.08) * 2;
@@ -493,6 +496,7 @@ export class GameRenderer {
   ) {
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(x - camera.x, y - camera.y);
 
     // Dynamic walking bob animation
@@ -599,6 +603,7 @@ export class GameRenderer {
   ) {
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(npc.x - camera.x, npc.y - camera.y);
 
     const bob = Math.sin(this.animFrame * 0.1 + npc.x) * 1.5;
@@ -747,6 +752,7 @@ export class GameRenderer {
     if (item.collected) return;
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(item.x - camera.x, item.y - camera.y);
 
     // Floating bobbing offset
@@ -814,6 +820,7 @@ export class GameRenderer {
   ) {
     const { ctx } = this;
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(x - camera.x, y - camera.y);
 
     if (isCovered) {
@@ -969,6 +976,7 @@ export class GameRenderer {
     }
 
     ctx.save();
+    ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(bx - camera.x, by - camera.y);
 
     // 1. Draw Support Posts (Sturdy dark wood pillars)

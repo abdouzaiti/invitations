@@ -84,8 +84,9 @@ export class GameEngine {
     this.syncInventoryWithItems();
 
     // Set camera immediately on player
-    this.camera.x = this.state.playerPosition.x - this.canvas.width / 2;
-    this.camera.y = this.state.playerPosition.y - this.canvas.height / 2;
+    const zoom = this.renderer.zoomScale;
+    this.camera.x = (this.state.playerPosition.x + 16) - (this.canvas.width / 2) / zoom;
+    this.camera.y = (this.state.playerPosition.y + 16) - (this.canvas.height / 2) / zoom;
 
     this.setupListeners();
     this.spawnSunsetParticles();
@@ -334,8 +335,9 @@ export class GameEngine {
 
   private checkCameraFollow() {
     // Center the camera exactly on the middle of the player sprite (Sarah is 32x32)
-    const targetCamX = (this.state.playerPosition.x + 16) - this.canvas.width / 2;
-    const targetCamY = (this.state.playerPosition.y + 16) - this.canvas.height / 2;
+    const zoom = this.renderer.zoomScale;
+    const targetCamX = (this.state.playerPosition.x + 16) - (this.canvas.width / 2) / zoom;
+    const targetCamY = (this.state.playerPosition.y + 16) - (this.canvas.height / 2) / zoom;
 
     // Instant centering lock
     this.camera.x = targetCamX;
