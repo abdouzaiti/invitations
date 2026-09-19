@@ -16,6 +16,9 @@ interface VirtualControlsProps {
   onRestart: () => void;
 }
 
+const MAX_RADIUS = 36; // Maximum pixel displacement of the handle from center
+const DEAD_ZONE = 7;   // Minimum pixel movement to trigger motion
+
 export const VirtualControls: React.FC<VirtualControlsProps> = ({
   onDirectionChange,
   onVectorChange,
@@ -28,47 +31,61 @@ export const VirtualControls: React.FC<VirtualControlsProps> = ({
   isDialogueOpen,
   onRestart,
 }) => {
-  const dpadRef = useRef<HTMLDivElement | null>(null);
-  const [activeDir, setActiveDir] = useState<Direction | null>(null);
-  const [isInteracting, setIsInteracting] = useState(false);
-  const [isJournalPressed, setIsJournalPressed] = useState(false);
+  const joystickBaseRef = useRef<HTMLDivElement | null>(null);
   const activePointerId = useRef<number | null>(null);
 
-  // Compute direction from touch coords relative to D-pad center
-  const updateDirectionFromPoint = useCallback(
+  // Position of the joystick handle (poignée) relative to center (in px)
+  const [knobOffset, setKnobOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [activeDir, setActiveDir] = useState<Direction | null>(null);
+
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [isJournalPressed, setIsJournalPressed] = useState(false);
+
+  // Calculate joystick handle displacement & directional vector
+  const handlePointerUpdate = useCallback(
     (clientX: number, clientY: number) => {
-      if (!dpadRef.current) return;
-      const rect = dpadRef.current.getBoundingClientRect();
+      if (!joystickBaseRef.current) return;
+      const rect = joystickBaseRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Deadzone check
-      if (distance < 12) {
+      const deltaX = clientX - centerX;
+      const deltaY = clientY - centerY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < DEAD_ZONE) {
+        setKnobOffset({ x: 0, y: 0 });
         setActiveDir(null);
         onDirectionChange(null);
         if (onVectorChange) onVectorChange(0, 0);
         return;
       }
 
-      // Normalized vector
-      const vx = dx / distance;
-      const vy = dy / distance;
+      // Clamp handle displacement to MAX_RADIUS
+      const angle = Math.atan2(deltaY, deltaX);
+      const clampedDistance = Math.min(distance, MAX_RADIUS);
+      const knobX = Math.cos(angle) * clampedDistance;
+      const knobY = Math.sin(angle) * clampedDistance;
 
-      // Determine 4-way direction
+      setKnobOffset({ x: knobX, y: knobY });
+
+      // Normalized direction vector (-1 to 1)
+      const intensity = clampedDistance / MAX_RADIUS;
+      const vx = Math.cos(angle) * intensity;
+      const vy = Math.sin(angle) * intensity;
+
+      // Determine primary 4-way direction
       let dir: Direction;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        dir = dx > 0 ? "right" : "left";
+      if (Math.abs(vx) > Math.abs(vy)) {
+        dir = vx > 0 ? "right" : "left";
       } else {
-        dir = dy > 0 ? "down" : "up";
+        dir = vy > 0 ? "down" : "up";
       }
 
       setActiveDir(dir);
       onDirectionChange(dir);
       if (onVectorChange) {
-        // Pass directional vector with speed multiplier
         onVectorChange(vx, vy);
       }
     },
@@ -77,32 +94,23 @@ export const VirtualControls: React.FC<VirtualControlsProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     activePointerId.current = e.pointerId;
-    updateDirectionFromPoint(e.clientX, e.clientY);
+    setIsDragging(true);
+    handlePointerUpdate(e.clientX, e.clientY);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId) return;
     e.preventDefault();
-    updateDirectionFromPoint(e.clientX, e.clientY);
+    handlePointerUpdate(e.clientX, e.clientY);
   };
 
   const handlePointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
     if (activePointerId.current === e.pointerId) {
       activePointerId.current = null;
-      setActiveDir(null);
-      onDirectionChange(null);
-      if (onVectorChange) onVectorChange(0, 0);
-    }
-  };
-
-  // Direct button tap handlers for discrete presses
-  const handleButtonDir = (dir: Direction, isDown: boolean) => {
-    if (isDown) {
-      setActiveDir(dir);
-      onDirectionChange(dir);
-    } else {
+      setIsDragging(false);
+      setKnobOffset({ x: 0, y: 0 });
       setActiveDir(null);
       onDirectionChange(null);
       if (onVectorChange) onVectorChange(0, 0);
@@ -111,84 +119,84 @@ export const VirtualControls: React.FC<VirtualControlsProps> = ({
 
   return (
     <div className="w-full max-w-lg mx-auto flex items-end justify-between px-3 py-2 select-none touch-none pointer-events-auto font-mono">
-      {/* LEFT: 8-Way Ergonomic Retro D-PAD */}
-      <div
-        ref={dpadRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        className="relative w-36 h-36 bg-slate-900/90 border-2 border-rose-300/40 rounded-full p-1 shadow-[0_8px_20px_rgba(0,0,0,0.3)] backdrop-blur-md flex items-center justify-center touch-none select-none active:border-rose-400"
-        style={{ touchAction: "none" }}
-      >
-        {/* Subtle cross visual guide */}
-        <div className="absolute w-12 h-32 bg-slate-800/80 rounded-lg pointer-events-none" />
-        <div className="absolute w-32 h-12 bg-slate-800/80 rounded-lg pointer-events-none" />
-
-        {/* UP BUTTON */}
-        <button
-          type="button"
-          onPointerDown={() => handleButtonDir("up", true)}
-          onPointerUp={() => handleButtonDir("up", false)}
-          className={`absolute top-1.5 left-1/2 -translate-x-1/2 w-11 h-11 flex items-center justify-center rounded-t-lg transition-all ${
-            activeDir === "up"
-              ? "bg-rose-500 text-white scale-95 shadow-inner"
-              : "bg-slate-700/80 text-rose-200 hover:bg-slate-600/80"
+      {/* LEFT: Ergonomic Analog Joystick Handle (Poignée de commande) */}
+      <div className="flex flex-col items-center gap-1">
+        <div
+          ref={joystickBaseRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          className={`relative w-36 h-36 rounded-full bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 transition-colors shadow-[0_10px_25px_rgba(0,0,0,0.45)] backdrop-blur-md flex items-center justify-center touch-none select-none cursor-grab active:cursor-grabbing ${
+            isDragging ? "border-rose-400 ring-2 ring-rose-400/30" : "border-rose-300/40"
           }`}
+          style={{ touchAction: "none" }}
+          title="Poignée Joystick (Glisser pour diriger)"
         >
-          <ArrowUp className="w-5 h-5 stroke-[2.5]" />
-        </button>
+          {/* Inner Recessed Track Groove */}
+          <div className="absolute inset-2.5 rounded-full bg-slate-950/90 border border-slate-800 shadow-inner pointer-events-none" />
 
-        {/* DOWN BUTTON */}
-        <button
-          type="button"
-          onPointerDown={() => handleButtonDir("down", true)}
-          onPointerUp={() => handleButtonDir("down", false)}
-          className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 w-11 h-11 flex items-center justify-center rounded-b-lg transition-all ${
-            activeDir === "down"
-              ? "bg-rose-500 text-white scale-95 shadow-inner"
-              : "bg-slate-700/80 text-rose-200 hover:bg-slate-600/80"
-          }`}
-        >
-          <ArrowDown className="w-5 h-5 stroke-[2.5]" />
-        </button>
+          {/* Directional Crosshair Axes */}
+          <div className="absolute w-0.5 h-24 bg-slate-800/80 pointer-events-none" />
+          <div className="absolute h-0.5 w-24 bg-slate-800/80 pointer-events-none" />
 
-        {/* LEFT BUTTON */}
-        <button
-          type="button"
-          onPointerDown={() => handleButtonDir("left", true)}
-          onPointerUp={() => handleButtonDir("left", false)}
-          className={`absolute left-1.5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-l-lg transition-all ${
-            activeDir === "left"
-              ? "bg-rose-500 text-white scale-95 shadow-inner"
-              : "bg-slate-700/80 text-rose-200 hover:bg-slate-600/80"
-          }`}
-        >
-          <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
-        </button>
+          {/* Subtle Directional Arrow Markers (Glow when active) */}
+          <ArrowUp
+            className={`absolute top-2 w-4 h-4 transition-colors pointer-events-none ${
+              activeDir === "up" ? "text-rose-400 scale-125" : "text-slate-600/70"
+            }`}
+          />
+          <ArrowDown
+            className={`absolute bottom-2 w-4 h-4 transition-colors pointer-events-none ${
+              activeDir === "down" ? "text-rose-400 scale-125" : "text-slate-600/70"
+            }`}
+          />
+          <ArrowLeft
+            className={`absolute left-2 w-4 h-4 transition-colors pointer-events-none ${
+              activeDir === "left" ? "text-rose-400 scale-125" : "text-slate-600/70"
+            }`}
+          />
+          <ArrowRight
+            className={`absolute right-2 w-4 h-4 transition-colors pointer-events-none ${
+              activeDir === "right" ? "text-rose-400 scale-125" : "text-slate-600/70"
+            }`}
+          />
 
-        {/* RIGHT BUTTON */}
-        <button
-          type="button"
-          onPointerDown={() => handleButtonDir("right", true)}
-          onPointerUp={() => handleButtonDir("right", false)}
-          className={`absolute right-1.5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-r-lg transition-all ${
-            activeDir === "right"
-              ? "bg-rose-500 text-white scale-95 shadow-inner"
-              : "bg-slate-700/80 text-rose-200 hover:bg-slate-600/80"
-          }`}
-        >
-          <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-        </button>
+          {/* DRAGGABLE ANALOG JOYSTICK HANDLE (POIGNÉE / THUMBSTICK KNOB) */}
+          <div
+            className="absolute w-16 h-16 rounded-full pointer-events-none flex items-center justify-center"
+            style={{
+              transform: `translate3d(${knobOffset.x}px, ${knobOffset.y}px, 0)`,
+              transition: isDragging ? "none" : "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              willChange: "transform",
+            }}
+          >
+            {/* Joystick Knob 3D Shadow */}
+            <div className="absolute inset-0 rounded-full bg-black/40 blur-[3px] translate-y-1" />
 
-        {/* Center Pivot Nub */}
-        <div className="w-8 h-8 rounded-full bg-slate-900 border-2 border-rose-400/40 shadow-inner flex items-center justify-center pointer-events-none">
-          <div className="w-2.5 h-2.5 rounded-full bg-rose-400/50" />
+            {/* Joystick Knob Outer Ring */}
+            <div className="relative w-full h-full rounded-full bg-gradient-to-b from-slate-700 via-rose-950 to-slate-900 border-2 border-rose-300/80 shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex items-center justify-center">
+              {/* Inner Grip Ridges */}
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500/80 via-rose-600 to-rose-900 border border-rose-200/50 shadow-inner flex items-center justify-center">
+                {/* Center Tactile Dome */}
+                <div className="w-6 h-6 rounded-full bg-slate-900 border border-rose-300/60 shadow-md flex items-center justify-center">
+                  <div
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      isDragging ? "bg-rose-400 shadow-[0_0_8px_#f43f5e] scale-125" : "bg-rose-300/60"
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">
+          Joystick
+        </span>
       </div>
 
-      {/* CENTER: Mini Utility Buttons (Audio & Restart) */}
-      <div className="flex flex-col items-center gap-2 mb-1">
+      {/* CENTER: Utility Buttons (Audio & Restart) */}
+      <div className="flex flex-col items-center gap-2 mb-4">
         <button
           type="button"
           onClick={() => {

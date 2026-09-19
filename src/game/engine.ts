@@ -258,9 +258,9 @@ export class GameEngine {
         GAME_AUDIO.playFootstep();
       }
 
-      // Normalise diagonal speed
+      // Normalise diagonal speed for keyboard discrete keys
       let speed = this.playerSpeed;
-      if (dx !== 0 && dy !== 0) {
+      if (!this.touchVector && dx !== 0 && dy !== 0) {
         speed = this.playerSpeed * 0.707;
       }
 
