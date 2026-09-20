@@ -43,7 +43,7 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       {
         id: "guide",
         name: "Coach Moh",
-        portrait: "/abdou.png",
+        portrait: "/moh.png",
         x: 550, // Near the motorcycle in Area 1
         y: 280,
         width: 32,
