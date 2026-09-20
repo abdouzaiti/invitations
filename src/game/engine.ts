@@ -20,6 +20,7 @@ export interface EngineState {
   isEndingDisappearance: boolean;
   endingPhase: "prompt" | "scene1" | "scene2" | "scene3" | "scene4" | "credits" | null;
   endingOffset: number;
+  endingSceneStartTime: number;
 }
 
 export class GameEngine {
@@ -85,6 +86,7 @@ export class GameEngine {
       isEndingDisappearance: false,
       endingPhase: null,
       endingOffset: 0,
+      endingSceneStartTime: 0,
       ...initialState,
     };
 
@@ -374,8 +376,17 @@ export class GameEngine {
   }
 
   private checkCameraFollow() {
-    // Center the camera exactly on the middle of the player sprite (Sarah is 32x32)
     const zoom = this.renderer.zoomScale;
+    
+    // During the ending journey, lock the camera to a cinematic center
+    if (this.state.currentArea === 5 && this.state.endingPhase && this.state.endingPhase.startsWith("scene")) {
+      const area = this.areas[5];
+      this.camera.x = (area.width / 2) - (this.canvas.width / 2) / zoom;
+      this.camera.y = 350 - (this.canvas.height / 2) / zoom; // Center vertically on the road area
+      return;
+    }
+
+    // Center the camera exactly on the middle of the player sprite (Sarah is 32x32)
     const targetCamX = (this.state.playerPosition.x + 16) - (this.canvas.width / 2) / zoom;
     const targetCamY = (this.state.playerPosition.y + 16) - (this.canvas.height / 2) / zoom;
 
@@ -747,12 +758,11 @@ export class GameEngine {
 
     // 4.5 Draw Ending Scene (Outside the offset, so it stays fixed on camera)
     if (this.state.currentArea === 5 && this.state.endingPhase && this.state.endingPhase.startsWith("scene")) {
-      // Calculate center of screen in world coordinates
+      // Calculate center X of screen in world coordinates
       const centerX = this.camera.x + (this.canvas.width / this.renderer.zoomScale) / 2;
-      const centerY = this.camera.y + (this.canvas.height / this.renderer.zoomScale) / 2;
       
-      // Draw centered on camera, slightly adjusted for the road height
-      this.renderer.drawEndingScene(this.state.endingPhase, centerX, centerY + 40, this.camera);
+      // Draw centered horizontally, anchored to the road height (y=400)
+      this.renderer.drawEndingScene(this.state.endingPhase, centerX, 400, this.camera, this.state.endingSceneStartTime);
     }
 
     // 6.5 Draw Petals
@@ -812,14 +822,15 @@ export class GameEngine {
         // Auto transition after 3s
         setTimeout(() => {
           this.state.endingPhase = "scene4";
+          this.state.endingSceneStartTime = Date.now();
           this.notifyState();
           
-          // Final credits after 4s
+          // Final animation and credits after 6s + 1s move
           setTimeout(() => {
             this.state.endingPhase = "credits";
             this.state.isGameFinished = true;
             this.notifyState();
-          }, 4000);
+          }, 7000); // 6s stay + 1s animation
         }, 3000);
       });
     });

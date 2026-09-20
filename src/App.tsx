@@ -131,6 +131,36 @@ export default function App() {
     }
   };
 
+  // Journey Prompt Interaction State
+  const [noButtonOffset, setNoButtonOffset] = useState({ x: 0, y: 0 });
+  const [noButtonClickCount, setNoButtonClickCount] = useState(0);
+
+  const handleNoClick = () => {
+    if (noButtonClickCount === 0) {
+      // First attempt: Jump away!
+      GAME_AUDIO.playClick();
+      setNoButtonOffset({ 
+        x: Math.random() > 0.5 ? 150 : -150, 
+        y: Math.random() > 0.5 ? -100 : 100 
+      });
+      setNoButtonClickCount(1);
+    } else {
+      // Second attempt: "Not working", trigger Yes anyway
+      GAME_AUDIO.playQuestComplete();
+      engineRef.current?.startEndingJourney();
+      // Reset for next time if prompt shows again
+      setNoButtonClickCount(0);
+      setNoButtonOffset({ x: 0, y: 0 });
+    }
+  };
+
+  const handleYesClick = () => {
+    GAME_AUDIO.playQuestComplete();
+    engineRef.current?.startEndingJourney();
+    setNoButtonClickCount(0);
+    setNoButtonOffset({ x: 0, y: 0 });
+  };
+
   return (
     <div className="fixed inset-0 w-full h-full bg-[#fce7f3] text-slate-800 flex flex-col items-center justify-between select-none overflow-hidden font-mono touch-none">
       {/* Soft romantic ambient background warmth */}
@@ -227,30 +257,26 @@ export default function App() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   className="absolute inset-0 z-40 flex items-center justify-center p-6"
                 >
-                  <div className="flex flex-col items-center gap-6 bg-slate-900/90 border-2 border-amber-500/50 p-8 rounded-3xl backdrop-blur-xl shadow-2xl max-w-sm w-full text-center">
-                    <div className="text-5xl animate-bounce">🏍️</div>
-                    <h2 className="text-xl font-black text-amber-100 tracking-tight uppercase">
+                  <div className="flex flex-col items-center gap-4 bg-slate-900/90 border-2 border-amber-500/50 p-6 rounded-2xl backdrop-blur-xl shadow-2xl max-w-[280px] w-full text-center">
+                    <div className="text-4xl animate-bounce">🏍️</div>
+                    <h2 className="text-sm md:text-base font-black text-amber-100 tracking-tight uppercase">
                       Ready to begin the journey?
                     </h2>
-                    <div className="flex gap-4 w-full mt-2">
+                    <div className="flex gap-3 w-full mt-1 relative h-12">
                       <button
-                        onClick={() => {
-                          GAME_AUDIO.playQuestComplete();
-                          engineRef.current?.startEndingJourney();
-                        }}
-                        className="flex-1 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+                        onClick={handleYesClick}
+                        className="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-lg text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg"
                       >
                         Yes ❤️
                       </button>
-                      <button
-                        onClick={() => {
-                          GAME_AUDIO.playClick();
-                          engineRef.current?.cancelEndingPrompt();
-                        }}
-                        className="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black rounded-xl uppercase tracking-widest transition-all active:scale-95"
+                      <motion.button
+                        animate={noButtonOffset}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        onClick={handleNoClick}
+                        className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black rounded-lg text-xs uppercase tracking-widest transition-all active:scale-95"
                       >
-                        No
-                      </button>
+                        {noButtonClickCount === 0 ? "No" : "Wait! 😂"}
+                      </motion.button>
                     </div>
                   </div>
                 </motion.div>
@@ -259,10 +285,18 @@ export default function App() {
 
             {/* Dialogue Box Overlay */}
             {gameState?.dialogue && (
-              <DialogueBox
-                dialogue={gameState.dialogue}
-                onAdvance={handleInteract}
-              />
+              <div className={`absolute left-0 right-0 z-40 flex justify-center pointer-events-none ${
+                gameState?.endingPhase && gameState.endingPhase.startsWith("scene") 
+                  ? "top-4" 
+                  : "bottom-4 md:bottom-6"
+              }`}>
+                <div className="pointer-events-auto">
+                  <DialogueBox
+                    dialogue={gameState.dialogue}
+                    onAdvance={handleInteract}
+                  />
+                </div>
+              </div>
             )}
           </main>
 

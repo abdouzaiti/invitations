@@ -36,18 +36,18 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
           transition={{ duration: 3, ease: "easeOut" }}
           className="flex flex-col items-center justify-center p-6 text-center mb-12"
         >
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-rose-600 mb-2">
-              <Heart className="w-16 h-16 fill-rose-600 animate-pulse" />
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-rose-600 mb-1">
+              <Heart className="w-12 h-12 fill-rose-600 animate-pulse" />
             </div>
-            <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] text-center">
+            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] text-center">
               THE END
             </h1>
-            <div className="mt-8 space-y-2">
-              <p className="text-rose-400 font-black text-xs md:text-sm tracking-[0.4em] uppercase">
+            <div className="mt-4 space-y-1">
+              <p className="text-rose-400 font-black text-[10px] md:text-xs tracking-[0.4em] uppercase">
                 Developed by Abdou just for you
               </p>
-              <p className="text-slate-400 italic text-xs md:text-sm font-medium">
+              <p className="text-slate-400 italic text-[10px] md:text-xs font-medium">
                 sema ji bla mzeytek 😂😂
               </p>
             </div>
@@ -60,7 +60,7 @@ export const EndingCinematic: React.FC<EndingCinematicProps> = ({ onRestart }) =
                 GAME_AUDIO.stopEngineSound();
                 onRestart();
               }}
-              className="mt-14 px-10 py-3.5 bg-white text-black font-black uppercase tracking-[0.2em] text-xs rounded-full hover:bg-rose-600 hover:text-white transition-all cursor-pointer shadow-xl active:scale-95"
+              className="mt-8 px-8 py-2.5 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-full hover:bg-rose-600 hover:text-white transition-all cursor-pointer shadow-xl active:scale-95"
             >
               Restart Adventure
             </motion.button>

@@ -57,9 +57,11 @@ export class GameRenderer {
       skyGrad.addColorStop(0.5, "#f97316"); // Fiery orange middle
       skyGrad.addColorStop(1, "#ffedd5"); // Pale horizon
       ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, mapWidth, 260); 
+      
+      // Draw very wide to cover any camera position
+      ctx.fillRect(-2000, 0, 5000, 260); 
 
-      // Sunset Sun
+      // Sunset Sun (Fixed relative to map coordinates, or could be camera relative)
       ctx.fillStyle = "#fff7ed";
       ctx.shadowBlur = 40;
       ctx.shadowColor = "#f97316";
@@ -212,17 +214,17 @@ export class GameRenderer {
         drawMidMounts(i * loopWidth - (scrollX * 1.5 % loopWidth)); // Parallax mid layer
       }
 
-      // 3. Ground & Road (Seamlessly tiled)
+      // 3. Ground & Road (Seamlessly tiled and wide enough to cover camera)
       ctx.fillStyle = "#130a1c"; // Ground
-      ctx.fillRect(0, 260, mapWidth, mapHeight - 260);
+      ctx.fillRect(-2000, 260, 5000, mapHeight - 260);
 
       ctx.fillStyle = "#1e293b"; // Road asphalt
-      ctx.fillRect(0, 280, mapWidth, 160);
+      ctx.fillRect(-2000, 280, 5000, 160);
 
       // White boundary lines
       ctx.fillStyle = "#94a3b8";
-      ctx.fillRect(0, 280, mapWidth, 4);
-      ctx.fillRect(0, 436, mapWidth, 4);
+      ctx.fillRect(-2000, 280, 5000, 4);
+      ctx.fillRect(-2000, 436, 5000, 4);
 
       // Yellow double centerline (repeating correctly with scroll)
       ctx.fillStyle = "#eab308";
@@ -230,7 +232,7 @@ export class GameRenderer {
       const gapWidth = 20;
       const totalDash = dashWidth + gapWidth;
       const dashScroll = endingOffset % totalDash;
-      for (let rx = -totalDash; rx < mapWidth + totalDash; rx += totalDash) {
+      for (let rx = -2000; rx < 3000; rx += totalDash) {
         ctx.fillRect(rx - dashScroll, 357, dashWidth, 2);
         ctx.fillRect(rx - dashScroll, 361, dashWidth, 2);
       }
@@ -239,11 +241,11 @@ export class GameRenderer {
       ctx.fillStyle = "#5c2d17"; // Brown wood
       const fenceGap = 50;
       const fenceScroll = endingOffset % fenceGap;
-      for (let fx = -fenceGap; fx < mapWidth + fenceGap; fx += fenceGap) {
+      for (let fx = -2000; fx < 3000; fx += fenceGap) {
         ctx.fillRect(fx - fenceScroll, 440, 10, 30); // Vertical posts
       }
-      ctx.fillRect(0, 442, mapWidth, 6); // Top horizontal rail
-      ctx.fillRect(0, 456, mapWidth, 6); // Middle horizontal rail
+      ctx.fillRect(-2000, 442, 5000, 6); // Top horizontal rail
+      ctx.fillRect(-2000, 456, 5000, 6); // Middle horizontal rail
     }
 
     ctx.restore();
@@ -513,7 +515,8 @@ export class GameRenderer {
     phase: string,
     x: number,
     y: number,
-    camera: { x: number; y: number }
+    camera: { x: number; y: number },
+    startTime: number = 0
   ) {
     const { ctx } = this;
     const imgMap: Record<string, string> = {
@@ -530,24 +533,30 @@ export class GameRenderer {
     if (img.complete && img.naturalWidth > 0) {
       ctx.save();
       ctx.scale(this.zoomScale, this.zoomScale);
-      ctx.translate(x - camera.x, y - camera.y);
+      
+      let currentX = x;
+      let currentScale = 1;
+      
+      // Special trick for End4.png
+      if (phase === "scene4" && startTime > 0) {
+        const elapsed = Date.now() - startTime;
+        if (elapsed > 6000) {
+          // After 6s, start shrinking and moving right
+          const animProgress = Math.min((elapsed - 6000) / 1000, 1); // 1s animation
+          currentScale = 1 - animProgress * 0.5; // Shrink to 50%
+          currentX += animProgress * 500; // Move right fast
+        }
+      }
+
+      ctx.translate(currentX - camera.x, y - camera.y);
+      ctx.scale(currentScale, currentScale);
       ctx.imageSmoothingEnabled = true;
 
-      // Match motorcycle scale but larger for cinematic feel
-      const targetHeight = 100;
+      // Match motorcycle scale but smaller per user request
+      const targetHeight = 80;
       const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
 
       ctx.drawImage(img, -targetWidth / 2, -targetHeight, targetWidth, targetHeight);
-
-      // In Scene 1 and 2, draw Standing Hanene in front of it
-      if (phase === "scene1" || phase === "scene2") {
-        const haneneImg = this.getImage("/Standinghanene.png");
-        if (haneneImg.complete) {
-          const hHeight = 65; 
-          const hWidth = (haneneImg.naturalWidth / haneneImg.naturalHeight) * hHeight;
-          ctx.drawImage(haneneImg, -hWidth / 2, -hHeight + 10, hWidth, hHeight);
-        }
-      }
 
       ctx.restore();
     }
