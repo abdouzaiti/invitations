@@ -220,7 +220,7 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       {
         id: "mechanic",
         name: "Mr afif",
-        portrait: "/afif.jpg",
+        portrait: "/Afif.png",
         x: 680,
         y: 180,
         width: 32,
