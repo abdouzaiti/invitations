@@ -590,7 +590,7 @@ export class GameEngine {
         key: "🔑 RUSTY GARAGE KEY",
       };
 
-      this.triggerLocalDialogue("Inventory", "traveler", [
+      this.triggerLocalDialogue("Coach Farouk", "traveler", [
         `Found item: ${itemNames[item.id] || item.name}!`,
         "It was added to your inventory journal."
       ]);
