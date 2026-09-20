@@ -17,6 +17,9 @@ export interface EngineState {
   finalDateCardVisible: boolean;
   endingChoiceSelected: boolean;
   isFinalDialogueCinematic: boolean;
+  isEndingDisappearance: boolean;
+  endingPhase: "prompt" | "scene1" | "scene2" | "scene3" | "scene4" | "credits" | null;
+  endingOffset: number;
 }
 
 export class GameEngine {
@@ -44,6 +47,7 @@ export class GameEngine {
   private typewriterTimer: any = null;
   private isRunning = false;
   private animationId = 0;
+  private isEndingDisappearance = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -78,6 +82,9 @@ export class GameEngine {
       finalDateCardVisible: false,
       endingChoiceSelected: false,
       isFinalDialogueCinematic: false,
+      isEndingDisappearance: false,
+      endingPhase: null,
+      endingOffset: 0,
       ...initialState,
     };
 
@@ -205,8 +212,14 @@ export class GameEngine {
     this.renderer.updateAnimation();
     this.updateSunsetParticles();
 
-    // Skip player movement if dialogue is active
-    if (this.state.dialogue) {
+    // Handle ending scrolling
+    if (this.state.endingPhase === "scene3" || this.state.endingPhase === "scene4") {
+      this.state.endingOffset += 2;
+      this.notifyState();
+    }
+
+    // Skip player movement if dialogue or ending is active
+    if (this.state.dialogue || (this.state.endingPhase && this.state.endingPhase !== "prompt")) {
       this.isWalking = false;
       return;
     }
@@ -466,15 +479,15 @@ export class GameEngine {
     }
 
     // Automate meeting character in Area 5
-    if (this.state.currentArea === 5 && !this.state.isFinalDialogueCinematic) {
+    if (this.state.currentArea === 5 && !this.state.endingPhase && !this.state.isFinalDialogueCinematic) {
       // Companion position: 620, 260
       const dist = this.getDistance(this.state.playerPosition, { x: 620, y: 260 });
       if (dist < 60) {
         this.state.isFinalDialogueCinematic = true;
         this.notifyState();
         this.triggerLocalDialogue(`${GAME_CONFIG.senderName}`, "/abdou.png", GAME_CONFIG.dialogues.finalMeeting, () => {
-          // Transition into the cinematic black prompt screen
-          this.state.isGameFinished = true;
+          // Show the prompt instead of finishing immediately
+          this.state.endingPhase = "prompt";
           this.notifyState();
         });
       }
@@ -677,7 +690,7 @@ export class GameEngine {
     this.renderer.clear(bgColor);
 
     // 1. Draw backgrounds and grids
-    this.renderer.drawBackground(area.id, area.width, area.height, this.camera);
+    this.renderer.drawBackground(area.id, area.width, area.height, this.camera, this.state.endingOffset);
 
     // 2. Draw Dynamic Chapter Barriers (Wooden gates & checkpoints)
     if (area.id === 1) {
@@ -687,6 +700,15 @@ export class GameEngine {
     } else if (area.id === 3) {
       const isTollClosed = !(this.state.discoveredMemories.length === 4 && this.state.isMotorcycleUncovered);
       this.renderer.drawBarrier(3, isTollClosed, this.camera);
+    }
+
+    // Wrap remaining world objects in ending offset if active
+    const ctx = this.canvas.getContext("2d")!;
+    ctx.save();
+    if (this.state.currentArea === 5 && this.state.endingOffset > 0) {
+      ctx.scale(this.renderer.zoomScale, this.renderer.zoomScale);
+      ctx.translate(-this.state.endingOffset, 0);
+      ctx.scale(1/this.renderer.zoomScale, 1/this.renderer.zoomScale);
     }
 
     // 3. Draw static decorations (trees, houses, benches)
@@ -700,23 +722,38 @@ export class GameEngine {
     // 4. Draw Motorcycle (uncovered / covered in Area 4 & 5)
     if (this.state.currentArea === 4) {
       this.renderer.drawMotorcycle(300, 180, !this.state.isMotorcycleUncovered, this.camera);
-    } else if (this.state.currentArea === 5) {
+    } else if (this.state.currentArea === 5 && !this.state.isEndingDisappearance) {
       this.renderer.drawMotorcycle(520, 280, false, this.camera);
     }
 
     // 5. Draw NPCs
     area.npcs.forEach((npc) => {
+      if (this.state.isEndingDisappearance && this.state.currentArea === 5) return;
       this.renderer.drawNPC(npc, this.camera);
     });
 
     // 6. Draw Player
-    this.renderer.drawPlayer(
-      this.state.playerPosition.x,
-      this.state.playerPosition.y,
-      this.state.playerDirection,
-      this.isWalking,
-      this.camera
-    );
+    if (!this.state.endingPhase || this.state.endingPhase === "prompt") {
+      this.renderer.drawPlayer(
+        this.state.playerPosition.x,
+        this.state.playerPosition.y,
+        this.state.playerDirection,
+        this.isWalking,
+        this.camera
+      );
+    }
+
+    ctx.restore();
+
+    // 4.5 Draw Ending Scene (Outside the offset, so it stays fixed on camera)
+    if (this.state.currentArea === 5 && this.state.endingPhase && this.state.endingPhase.startsWith("scene")) {
+      // Calculate center of screen in world coordinates
+      const centerX = this.camera.x + (this.canvas.width / this.renderer.zoomScale) / 2;
+      const centerY = this.camera.y + (this.canvas.height / this.renderer.zoomScale) / 2;
+      
+      // Draw centered on camera, slightly adjusted for the road height
+      this.renderer.drawEndingScene(this.state.endingPhase, centerX, centerY + 40, this.camera);
+    }
 
     // 6.5 Draw Petals
     this.renderer.drawPetals(area.width, area.height);
@@ -757,6 +794,47 @@ export class GameEngine {
         p.a = 0.4 + Math.random() * 0.5;
       }
     });
+  }
+
+  public startEndingJourney() {
+    this.state.endingPhase = "scene1";
+    this.state.isEndingDisappearance = true;
+    this.notifyState();
+
+    this.triggerLocalDialogue(`${GAME_CONFIG.senderName}`, "/abdou.png", ["Let's go take your helmet."], () => {
+      this.state.endingPhase = "scene2";
+      this.notifyState();
+      
+      this.triggerLocalDialogue(`${GAME_CONFIG.senderName}`, "/abdou.png", ["Great, now get in the bike."], () => {
+        this.state.endingPhase = "scene3";
+        this.notifyState();
+        
+        // Auto transition after 3s
+        setTimeout(() => {
+          this.state.endingPhase = "scene4";
+          this.notifyState();
+          
+          // Final credits after 4s
+          setTimeout(() => {
+            this.state.endingPhase = "credits";
+            this.state.isGameFinished = true;
+            this.notifyState();
+          }, 4000);
+        }, 3000);
+      });
+    });
+  }
+
+  public cancelEndingPrompt() {
+    this.state.endingPhase = null;
+    this.state.isFinalDialogueCinematic = false; // Allow re-triggering if she walks away and back
+    this.notifyState();
+  }
+
+  public setEndingDisappearance(val: boolean) {
+    this.isEndingDisappearance = val;
+    this.state.isEndingDisappearance = val;
+    this.notifyState();
   }
 
   private getDistance(p1: Position, p2: Position): number {

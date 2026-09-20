@@ -42,12 +42,43 @@ export class GameRenderer {
     areaId: AreaId,
     mapWidth: number,
     mapHeight: number,
-    camera: { x: number; y: number }
+    camera: { x: number; y: number },
+    endingOffset: number = 0
   ) {
     const { ctx } = this;
+    if (areaId === 5) {
+      // 1. Draw Static Sky Background (Fixed relative to camera)
+      ctx.save();
+      ctx.scale(this.zoomScale, this.zoomScale);
+      
+      // Dramatic Sunset Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 260);
+      skyGrad.addColorStop(0, "#fb923c"); // Deep orange top
+      skyGrad.addColorStop(0.5, "#f97316"); // Fiery orange middle
+      skyGrad.addColorStop(1, "#ffedd5"); // Pale horizon
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, mapWidth, 260); 
+
+      // Sunset Sun
+      ctx.fillStyle = "#fff7ed";
+      ctx.shadowBlur = 40;
+      ctx.shadowColor = "#f97316";
+      ctx.beginPath();
+      ctx.arc(600, 150, 45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      ctx.restore();
+    }
+
     ctx.save();
     ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(-camera.x, -camera.y);
+
+    if (areaId === 5 && endingOffset > 0) {
+      // Apply offset for scrolling background in the ending
+      ctx.translate(-endingOffset, 0);
+    }
 
     if (areaId === 1 || areaId === 2) {
       // Village or Memory Path: Cozy Romantic field
@@ -140,79 +171,52 @@ export class GameRenderer {
       ctx.fillStyle = ROMANTIC_COLORS.rosePink;
       ctx.fillRect(mapWidth / 2 - 50, mapHeight - 65, 100, 25);
     } else if (areaId === 5) {
-      // The Overlook: Beautiful sunset background behind the road
-      // Since it's an overlook, we draw the sunset sky in the upper portion
-      const sunsetGradient = ctx.createLinearGradient(0, 0, 0, 260);
-      sunsetGradient.addColorStop(0, "#1e1b4b"); // Deep indigo midnight
-      sunsetGradient.addColorStop(0.3, "#4c1d95"); // Deep purple
-      sunsetGradient.addColorStop(0.6, "#7c2d12"); // Rich rust orange
-      sunsetGradient.addColorStop(0.85, "#ca8a04"); // Golden light
-      sunsetGradient.addColorStop(1, "#fef08a"); // Bright horizon yellow
-      ctx.fillStyle = sunsetGradient;
-      ctx.fillRect(0, 0, mapWidth, 260);
+      // Infinite Seamless Scrolling Overlook for Ending Journey
+      const loopWidth = 1000;
+      const scrollX = endingOffset % loopWidth;
 
-      // Draw setting sun
-      ctx.fillStyle = "#fef08a";
-      ctx.beginPath();
-      ctx.arc(400, 210, 50, 0, Math.PI, true); // Sun half-dipped into horizon
-      ctx.fill();
-
-      // Sun halo rays
-      ctx.fillStyle = "rgba(254, 240, 138, 0.15)";
-      ctx.beginPath();
-      ctx.arc(400, 210, 85, 0, Math.PI, true);
-      ctx.fill();
-
-      // Mountains Silhouette
-      ctx.fillStyle = "#2e1047"; // Purple mountains
-      ctx.beginPath();
-      ctx.moveTo(0, 260);
-      ctx.lineTo(80, 180);
-      ctx.lineTo(180, 220);
-      ctx.lineTo(310, 140);
-      ctx.lineTo(450, 210);
-      ctx.lineTo(580, 150);
-      ctx.lineTo(720, 200);
-      ctx.lineTo(800, 160);
-      ctx.lineTo(800, 260);
-      ctx.closePath();
-      ctx.fill();
-
-      // Secondary layered mountains (closer, darker)
-      ctx.fillStyle = "#1e0b30";
-      ctx.beginPath();
-      ctx.moveTo(0, 260);
-      ctx.lineTo(120, 210);
-      ctx.lineTo(240, 240);
-      ctx.lineTo(380, 180);
-      ctx.lineTo(510, 230);
-      ctx.lineTo(650, 190);
-      ctx.lineTo(800, 230);
-      ctx.lineTo(800, 260);
-      ctx.closePath();
-      ctx.fill();
-
-      // Flying bird silhouettes in the sky
-      ctx.fillStyle = "rgba(15, 10, 25, 0.4)";
-      const birdOffset = (this.animFrame * 0.4) % 120;
-      const drawBird = (bx: number, by: number) => {
+      // 1. Draw Repeating Mountains (Far Layer)
+      ctx.fillStyle = "#2e1047"; 
+      const drawFarMounts = (ox: number) => {
         ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(bx + 6, by - 6, bx + 12, by);
-        ctx.quadraticCurveTo(bx + 18, by - 6, bx + 24, by);
-        ctx.quadraticCurveTo(bx + 12, by - 2, bx, by);
+        ctx.moveTo(ox, 260);
+        ctx.lineTo(ox + 150, 150);
+        ctx.lineTo(ox + 300, 220);
+        ctx.lineTo(ox + 500, 80);
+        ctx.lineTo(ox + 700, 200);
+        ctx.lineTo(ox + 1000, 260);
+        ctx.closePath();
         ctx.fill();
       };
-      drawBird(150 + birdOffset, 100);
-      drawBird(180 + birdOffset, 120);
-      drawBird(140 + birdOffset, 135);
+      
+      // Draw segments to cover screen with scrollX
+      for (let i = -1; i < 3; i++) {
+        drawFarMounts(i * loopWidth - scrollX);
+      }
 
-      // Overlook Ground: Mountain peak asphalt road
-      ctx.fillStyle = "#130a1c"; // Very deep sunset shadows grass
+      // 2. Draw Repeating Mountains (Mid Layer - Closer)
+      ctx.fillStyle = "#1e0b30";
+      const drawMidMounts = (ox: number) => {
+        ctx.beginPath();
+        ctx.moveTo(ox, 260);
+        ctx.lineTo(ox + 200, 180);
+        ctx.lineTo(ox + 400, 230);
+        ctx.lineTo(ox + 600, 160);
+        ctx.lineTo(ox + 800, 220);
+        ctx.lineTo(ox + 1000, 260);
+        ctx.closePath();
+        ctx.fill();
+      };
+      
+      for (let i = -1; i < 3; i++) {
+        drawMidMounts(i * loopWidth - (scrollX * 1.5 % loopWidth)); // Parallax mid layer
+      }
+
+      // 3. Ground & Road (Seamlessly tiled)
+      ctx.fillStyle = "#130a1c"; // Ground
       ctx.fillRect(0, 260, mapWidth, mapHeight - 260);
 
-      // Paved overlook roadway
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#1e293b"; // Road asphalt
       ctx.fillRect(0, 280, mapWidth, 160);
 
       // White boundary lines
@@ -220,22 +224,26 @@ export class GameRenderer {
       ctx.fillRect(0, 280, mapWidth, 4);
       ctx.fillRect(0, 436, mapWidth, 4);
 
-      // Yellow double centerline
+      // Yellow double centerline (repeating correctly with scroll)
       ctx.fillStyle = "#eab308";
       const dashWidth = 35;
       const gapWidth = 20;
-      for (let rx = 0; rx < mapWidth; rx += dashWidth + gapWidth) {
-        ctx.fillRect(rx, 357, dashWidth, 2);
-        ctx.fillRect(rx, 361, dashWidth, 2);
+      const totalDash = dashWidth + gapWidth;
+      const dashScroll = endingOffset % totalDash;
+      for (let rx = -totalDash; rx < mapWidth + totalDash; rx += totalDash) {
+        ctx.fillRect(rx - dashScroll, 357, dashWidth, 2);
+        ctx.fillRect(rx - dashScroll, 361, dashWidth, 2);
       }
 
-      // Draw wooden look-out deck fence
+      // 4. Draw wooden look-out deck fence (repeating correctly)
       ctx.fillStyle = "#5c2d17"; // Brown wood
-      for (let fx = 40; fx < mapWidth - 40; fx += 50) {
-        ctx.fillRect(fx, 440, 10, 30); // Vertical posts
+      const fenceGap = 50;
+      const fenceScroll = endingOffset % fenceGap;
+      for (let fx = -fenceGap; fx < mapWidth + fenceGap; fx += fenceGap) {
+        ctx.fillRect(fx - fenceScroll, 440, 10, 30); // Vertical posts
       }
-      ctx.fillRect(40, 442, mapWidth - 80, 6); // Top horizontal rail
-      ctx.fillRect(40, 456, mapWidth - 80, 6); // Middle horizontal rail
+      ctx.fillRect(0, 442, mapWidth, 6); // Top horizontal rail
+      ctx.fillRect(0, 456, mapWidth, 6); // Middle horizontal rail
     }
 
     ctx.restore();
@@ -501,6 +509,50 @@ export class GameRenderer {
     ctx.restore();
   }
 
+  public drawEndingScene(
+    phase: string,
+    x: number,
+    y: number,
+    camera: { x: number; y: number }
+  ) {
+    const { ctx } = this;
+    const imgMap: Record<string, string> = {
+      scene1: "/End1.png",
+      scene2: "/End2.png",
+      scene3: "/End3.png",
+      scene4: "/End4.png",
+    };
+
+    const src = imgMap[phase];
+    if (!src) return;
+
+    const img = this.getImage(src);
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.save();
+      ctx.scale(this.zoomScale, this.zoomScale);
+      ctx.translate(x - camera.x, y - camera.y);
+      ctx.imageSmoothingEnabled = true;
+
+      // Match motorcycle scale but larger for cinematic feel
+      const targetHeight = 100;
+      const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
+
+      ctx.drawImage(img, -targetWidth / 2, -targetHeight, targetWidth, targetHeight);
+
+      // In Scene 1 and 2, draw Standing Hanene in front of it
+      if (phase === "scene1" || phase === "scene2") {
+        const haneneImg = this.getImage("/Standinghanene.png");
+        if (haneneImg.complete) {
+          const hHeight = 65; 
+          const hWidth = (haneneImg.naturalWidth / haneneImg.naturalHeight) * hHeight;
+          ctx.drawImage(haneneImg, -hWidth / 2, -hHeight + 10, hWidth, hHeight);
+        }
+      }
+
+      ctx.restore();
+    }
+  }
+
   /**
    * Render the player character in pixel style with simple sprite bobbing
    */
@@ -516,96 +568,40 @@ export class GameRenderer {
     ctx.scale(this.zoomScale, this.zoomScale);
     ctx.translate(x - camera.x, y - camera.y);
 
-    // Dynamic walking bob animation
-    const bob = isWalking ? Math.floor((this.animFrame / 10) % 4) : 0;
-    const bodyBobY = (bob === 1 || bob === 3) ? -2 : 0;
-    const limbSwing = (bob === 1) ? 3 : (bob === 3) ? -3 : 0;
-
     // Player Shadow
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.beginPath();
     ctx.ellipse(16, 44, 14, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 1. LEGS (Blue jeans)
-    ctx.fillStyle = "#2563eb"; // Blue jeans
-    if (isWalking) {
-      // Left leg
-      ctx.fillRect(8, 30 + (bob === 1 ? -2 : 0), 6, 12);
-      // Right leg
-      ctx.fillRect(18, 30 + (bob === 3 ? -2 : 0), 6, 12);
-      // Brown boots
-      ctx.fillStyle = "#78350f";
-      ctx.fillRect(7, 40 + (bob === 1 ? -2 : 0), 8, 4);
-      ctx.fillRect(17, 40 + (bob === 3 ? -2 : 0), 8, 4);
-    } else {
-      ctx.fillRect(8, 30, 7, 12);
-      ctx.fillRect(17, 30, 7, 12);
-      // Brown boots
-      ctx.fillStyle = "#78350f";
-      ctx.fillRect(7, 40, 9, 4);
-      ctx.fillRect(16, 40, 9, 4);
-    }
+    // Use user-provided assets
+    const imgPath = isWalking ? "/Walkinghanene.png" : "/Standinghanene.png";
+    const img = this.getImage(imgPath);
 
-    // 2. TORSO / JACKET (Sleek black leather jacket with purple highlights)
-    ctx.fillStyle = "#1f2937"; // Dark black leather jacket
-    ctx.fillRect(6, 14 + bodyBobY, 20, 18);
-    // Purple scarf / undershirt
-    ctx.fillStyle = "#ca8a04"; // Gold zipper/button detail
-    ctx.fillRect(15, 14 + bodyBobY, 2, 18);
-    ctx.fillStyle = "#c084fc"; // Purple scarf collar
-    ctx.fillRect(10, 14 + bodyBobY, 12, 4);
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.imageSmoothingEnabled = true;
+      
+      // Dynamic walking bob animation to give it life
+      const bobY = isWalking ? Math.sin(this.animFrame * 0.2) * 3 : 0;
+      
+      const targetHeight = 68; // Slightly larger for better detail
+      const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
+      
+      // Vertical alignment: feet at the shadow center (44)
+      const dx = 16 - targetWidth / 2;
+      const dy = 44 + bobY - targetHeight;
 
-    // 3. ARMS / HANDS (Swaying when walking)
-    ctx.fillStyle = "#111827"; // Darker sleeves
-    if (dir === "up" || dir === "down") {
-      ctx.fillRect(2, 16 + bodyBobY + limbSwing, 4, 12);
-      ctx.fillRect(26, 16 + bodyBobY - limbSwing, 4, 12);
-      // Skin tone hands
-      ctx.fillStyle = "#ffedd5";
-      ctx.fillRect(2, 28 + bodyBobY + limbSwing, 4, 4);
-      ctx.fillRect(26, 28 + bodyBobY - limbSwing, 4, 4);
-    } else if (dir === "left") {
-      ctx.fillRect(14, 16 + bodyBobY + limbSwing, 4, 12);
-      ctx.fillStyle = "#ffedd5";
-      ctx.fillRect(14, 28 + bodyBobY + limbSwing, 4, 4);
-    } else if (dir === "right") {
-      ctx.fillRect(14, 16 + bodyBobY - limbSwing, 4, 12);
-      ctx.fillStyle = "#ffedd5";
-      ctx.fillRect(14, 28 + bodyBobY - limbSwing, 4, 4);
-    }
-
-    // 4. HEAD / FACE / HAIR (Sarah - Gorgeous cascading Chestnut Hair)
-    ctx.fillStyle = "#ffedd5"; // Soft warm skin tone
-    ctx.fillRect(8, 2 + bodyBobY, 16, 12);
-
-    // Deep chestnut cascading hair
-    ctx.fillStyle = "#7c2d12"; // Deep chestnut brown
-    ctx.fillRect(6, -3 + bodyBobY, 20, 5); // Hair top
-    ctx.fillRect(6, 2 + bodyBobY, 4, 15); // Left lock falling down
-    ctx.fillRect(22, 2 + bodyBobY, 4, 15); // Right lock falling down
-    ctx.fillRect(12, -4 + bodyBobY, 8, 2); // Small hair bun clip
-
-    // Face features based on direction
-    ctx.fillStyle = "#0f172a"; // Eye color (dark blue/black)
-    if (dir === "down") {
-      ctx.fillRect(11, 6 + bodyBobY, 2, 3); // Left eye
-      ctx.fillRect(19, 6 + bodyBobY, 2, 3); // Right eye
-      ctx.fillStyle = "#fda4af"; // Pink blushing cheeks
-      ctx.fillRect(9, 9 + bodyBobY, 2, 2);
-      ctx.fillRect(21, 9 + bodyBobY, 2, 2);
-    } else if (dir === "left") {
-      ctx.fillRect(9, 6 + bodyBobY, 2, 3);
-      ctx.fillStyle = "#fda4af";
-      ctx.fillRect(8, 9 + bodyBobY, 2, 2);
-    } else if (dir === "right") {
-      ctx.fillRect(21, 6 + bodyBobY, 2, 3);
-      ctx.fillStyle = "#fda4af";
-      ctx.fillRect(22, 9 + bodyBobY, 2, 2);
-    } else if (dir === "up") {
-      // Back of hair cascading further down over the back
-      ctx.fillStyle = "#7c2d12";
-      ctx.fillRect(6, 2 + bodyBobY, 20, 16);
+      if (dir === "left") {
+        ctx.save();
+        ctx.translate(16, 0); // Flip relative to player center
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, -targetWidth / 2, dy, targetWidth, targetHeight);
+        ctx.restore();
+      } else {
+        ctx.drawImage(img, dx, dy, targetWidth, targetHeight);
+      }
+      
+      ctx.imageSmoothingEnabled = false;
     }
 
     ctx.restore();
@@ -628,7 +624,7 @@ export class GameRenderer {
     // NPC Shadow
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.beginPath();
-    ctx.ellipse(16, 44, 12, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(16, 44, 16, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Check if NPC uses a custom photo/image
@@ -648,7 +644,7 @@ export class GameRenderer {
         ctx.save();
         ctx.imageSmoothingEnabled = true;
 
-        const targetHeight = 72;
+        const targetHeight = 92;
         const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
         const dx = 16 - targetWidth / 2;
         const dy = 44 + bob - targetHeight;
@@ -656,133 +652,7 @@ export class GameRenderer {
         ctx.drawImage(img, dx, dy, targetWidth, targetHeight);
 
         ctx.restore();
-        ctx.restore();
-        return;
       }
-    }
-
-    // Custom Sprite Rendering based on NPC type (Fallback or Pixel sprites)
-    if (npc.spriteType === "guide") {
-      // The Elder Guide (Sage blue long robe, grey beard)
-      ctx.fillStyle = "#1e3a8a"; // Deep blue robe
-      ctx.fillRect(6, 12 + bob, 20, 24);
-      ctx.fillRect(4, 18 + bob, 24, 18); // Sleeves
-      
-      // Face
-      ctx.fillStyle = "#ffedd5";
-      ctx.fillRect(9, 2 + bob, 14, 10);
-      
-      // Grey beard and hood
-      ctx.fillStyle = "#cbd5e1"; // Beard
-      ctx.fillRect(9, 9 + bob, 14, 12);
-      ctx.fillRect(11, 21 + bob, 10, 4);
-      
-      ctx.fillStyle = "#172554"; // Dark blue hood
-      ctx.fillRect(7, -1 + bob, 18, 4);
-      ctx.fillRect(6, 3 + bob, 3, 10);
-      ctx.fillRect(23, 3 + bob, 3, 10);
-
-      // Staff
-      ctx.fillStyle = "#78350f"; // Staff wood
-      ctx.fillRect(27, -4 + bob, 3, 44);
-      ctx.fillStyle = "#38bdf8"; // Blue gem on top
-      ctx.fillRect(26, -9 + bob, 5, 5);
-    } else if (npc.spriteType === "traveler") {
-      // Old Traveler (Explorer outfit, hat, backpack)
-      // Backpack (behind torso, so draw first)
-      ctx.fillStyle = "#7c2d12"; // Rugged leather brown
-      ctx.fillRect(2, 16 + bob, 6, 14);
-
-      // Torso
-      ctx.fillStyle = "#b45309"; // Khaki vest
-      ctx.fillRect(8, 14 + bob, 16, 18);
-      ctx.fillStyle = "#fef08a"; // Yellow neckerchief
-      ctx.fillRect(13, 14 + bob, 6, 3);
-
-      // Legs
-      ctx.fillStyle = "#4b5563"; // Dark grey trousers
-      ctx.fillRect(9, 31, 6, 11);
-      ctx.fillRect(17, 31, 6, 11);
-      // Boots
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(8, 41, 8, 3);
-      ctx.fillRect(16, 41, 8, 3);
-
-      // Face & Hat
-      ctx.fillStyle = "#ffedd5";
-      ctx.fillRect(9, 4 + bob, 14, 10);
-      ctx.fillStyle = "#ca8a04"; // Explorer yellow hat
-      ctx.fillRect(5, 1 + bob, 22, 4); // Brim
-      ctx.fillRect(8, -4 + bob, 16, 5); // Crown
-
-      // Black specs / eyes
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(12, 7 + bob, 2, 2);
-      ctx.fillRect(18, 7 + bob, 2, 2);
-    } else if (npc.spriteType === "mechanic") {
-      // Slick the Mechanic (Cap, dungarees, wrench)
-      // Torso/Dungarees
-      ctx.fillStyle = "#ffffff"; // White undershirt
-      ctx.fillRect(8, 14 + bob, 16, 18);
-      ctx.fillStyle = "#0369a1"; // Blue overalls
-      ctx.fillRect(9, 18 + bob, 14, 14);
-      ctx.fillRect(9, 14 + bob, 3, 5); // Left strap
-      ctx.fillRect(20, 14 + bob, 3, 5); // Right strap
-
-      // Legs
-      ctx.fillStyle = "#0369a1";
-      ctx.fillRect(9, 31, 6, 11);
-      ctx.fillRect(17, 31, 6, 11);
-      ctx.fillStyle = "#475569"; // Steel toe boots
-      ctx.fillRect(8, 41, 8, 3);
-      ctx.fillRect(16, 41, 8, 3);
-
-      // Face & Red Cap
-      ctx.fillStyle = "#fed7aa";
-      ctx.fillRect(9, 4 + bob, 14, 10);
-      ctx.fillStyle = "#dc2626"; // Red cap
-      ctx.fillRect(8, -2 + bob, 16, 7);
-      ctx.fillRect(12, -2 + bob, 16, 3); // Bill
-
-      // Eyes
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(12, 7 + bob, 2, 2);
-      ctx.fillRect(18, 7 + bob, 2, 2);
-    } else if (npc.spriteType === "companion") {
-      // Alex (Adventure green jacket, handsome short brown hair, boots)
-      // Legs (dark denim jeans)
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(8, 31, 6, 11);
-      ctx.fillRect(18, 31, 6, 11);
-      ctx.fillStyle = "#78350f"; // Brown boots
-      ctx.fillRect(7, 40, 8, 4);
-      ctx.fillRect(17, 40, 8, 4);
-
-      // Torso (Adventure Green Jacket with zipper)
-      ctx.fillStyle = "#15803d"; // Forest green jacket
-      ctx.fillRect(6, 14 + bob, 20, 18);
-      ctx.fillStyle = "#e2e8f0"; // Zipper line
-      ctx.fillRect(15, 14 + bob, 2, 18);
-
-      // Arms (resting coolly)
-      ctx.fillStyle = "#166534"; // Darker sleeves
-      ctx.fillRect(2, 16 + bob, 4, 12);
-      ctx.fillRect(26, 16 + bob, 4, 12);
-
-      // Face & Short Hair (Alex)
-      ctx.fillStyle = "#fed7aa"; // Skin tone
-      ctx.fillRect(9, 2 + bob, 14, 12);
-
-      // Short handsome brown hair
-      ctx.fillStyle = "#451a03"; // Brown hair
-      ctx.fillRect(7, -2 + bob, 18, 5); // Hair top
-      ctx.fillRect(7, 3 + bob, 3, 6); // Sideburn left
-      ctx.fillRect(22, 3 + bob, 3, 6); // Sideburn right
-
-      // Eyes
-      ctx.fillStyle = "#0f172a";
-      ctx.fillRect(12, 6 + bob, 2, 3);
-      ctx.fillRect(18, 6 + bob, 2, 3);
     }
 
     // Floating interaction prompt "E" if player is very close (bobbing slightly)
@@ -925,77 +795,6 @@ export class GameRenderer {
         ctx.drawImage(img, 50 - targetWidth / 2, 48 - targetHeight, targetWidth, targetHeight);
         
         ctx.imageSmoothingEnabled = false;
-      } else {
-        // Fallback to original procedural drawing if image not loaded
-        // 1. Spoked Wheels (Front and back)
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#1e293b"; // Heavy rubber tires
-        ctx.fillStyle = "#cbd5e1"; // Silver spokes
-
-        // Front wheel (Right side)
-        ctx.beginPath();
-        ctx.arc(80, 36, 12, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fill();
-
-        // Back wheel (Left side)
-        ctx.beginPath();
-        ctx.arc(16, 36, 12, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fill();
-
-        // Center hubs and metallic lines
-        ctx.fillStyle = "#475569";
-        ctx.fillRect(14, 34, 4, 4);
-        ctx.fillRect(78, 34, 4, 4);
-
-        // 2. Engine and Exhaust pipes (Silver & Iron)
-        ctx.fillStyle = "#334155"; // Engine block
-        ctx.fillRect(30, 22, 26, 18);
-        ctx.fillStyle = "#94a3b8"; // Silver chrome cylinders
-        ctx.fillRect(32, 20, 22, 3);
-
-        // Long chrome exhaust pipe running back
-        ctx.fillStyle = "#cbd5e1";
-        ctx.fillRect(28, 38, 45, 4);
-
-        // 3. Chassis frame, fuel tank (Vintage Candy Red)
-        ctx.fillStyle = "#b91c1c"; // Red fuel tank
-        ctx.fillRect(36, 12, 30, 11);
-        // Rounded edges for gas tank
-        ctx.fillRect(34, 14, 34, 7);
-
-        ctx.fillStyle = "#111827"; // Dark vinyl seat
-        ctx.fillRect(20, 16, 20, 5);
-
-        // 4. Handlebars & Headlamp (facing right)
-        ctx.strokeStyle = "#94a3b8"; // Front forks
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(80, 36);
-        ctx.lineTo(65, 4);
-        ctx.stroke();
-
-        ctx.fillStyle = "#1e293b"; // Black grips
-        ctx.fillRect(58, 2, 10, 3);
-
-        // Headlamp shining light
-        ctx.fillStyle = "#ca8a04"; // Chrome casing
-        ctx.fillRect(68, 5, 8, 6);
-
-        // Glow yellow ray
-        const lightPulse = Math.sin(this.animFrame * 0.15) * 5;
-        const headlightGlow = ctx.createRadialGradient(76, 8, 2, 76 + 50, 8, 40 + lightPulse);
-        headlightGlow.addColorStop(0, "rgba(254, 240, 138, 0.8)");
-        headlightGlow.addColorStop(0.5, "rgba(254, 240, 138, 0.25)");
-        headlightGlow.addColorStop(1, "rgba(254, 240, 138, 0)");
-        ctx.fillStyle = headlightGlow;
-        ctx.beginPath();
-        ctx.moveTo(76, 8);
-        ctx.lineTo(160, -20);
-        ctx.lineTo(160, 40);
-        ctx.closePath();
-        ctx.fill();
       }
     }
 

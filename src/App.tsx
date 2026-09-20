@@ -147,8 +147,8 @@ export default function App() {
           />
         )}
 
-        {/* Step 2: Ending Cinematic and Personalized Invite Ticket */}
-        {gameState?.isGameFinished && (
+        {/* Step 2: Ending Credits and Personalized Invite Ticket */}
+        {gameState?.endingPhase === "credits" && (
           <EndingCinematic
             key="ending-cinematic-screen"
             onRestart={handleRestart}
@@ -217,6 +217,45 @@ export default function App() {
 
             {/* CRT Arcade Scanline subtle texture */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.08)_50%)] bg-[size:100%_4px] pointer-events-none opacity-30" />
+
+            {/* Ending Choice Prompt Overlay */}
+            <AnimatePresence>
+              {gameState?.endingPhase === "prompt" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="absolute inset-0 z-40 flex items-center justify-center p-6"
+                >
+                  <div className="flex flex-col items-center gap-6 bg-slate-900/90 border-2 border-amber-500/50 p-8 rounded-3xl backdrop-blur-xl shadow-2xl max-w-sm w-full text-center">
+                    <div className="text-5xl animate-bounce">🏍️</div>
+                    <h2 className="text-xl font-black text-amber-100 tracking-tight uppercase">
+                      Ready to begin the journey?
+                    </h2>
+                    <div className="flex gap-4 w-full mt-2">
+                      <button
+                        onClick={() => {
+                          GAME_AUDIO.playQuestComplete();
+                          engineRef.current?.startEndingJourney();
+                        }}
+                        className="flex-1 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+                      >
+                        Yes ❤️
+                      </button>
+                      <button
+                        onClick={() => {
+                          GAME_AUDIO.playClick();
+                          engineRef.current?.cancelEndingPrompt();
+                        }}
+                        className="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black rounded-xl uppercase tracking-widest transition-all active:scale-95"
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Dialogue Box Overlay */}
             {gameState?.dialogue && (

@@ -59,7 +59,7 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
       id: "memory01",
       title: "The First Spark",
       text: "Some moments start small, but they stay with you forever. That first coffee, the endless talking, and the warmth of a smile.",
-      image: "/assets/photos/memories/memory01.jpg", // Replace with real photo later!
+      image: "/End1.png",
       date: "Springtime",
       hint: "Hidden near the ancient oak tree in the village."
     },
@@ -67,7 +67,7 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
       id: "memory02",
       title: "Shared Laughs",
       text: "A picture captures a second, but the feeling of laughing until our stomachs hurt lasts a lifetime.",
-      image: "/assets/photos/memories/memory02.jpg", // Replace with real photo later!
+      image: "/End2.png",
       date: "Summer Night",
       hint: "Tucked away inside the secret flower clearing."
     },
@@ -75,7 +75,7 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
       id: "memory03",
       title: "Cozy Getaways",
       text: "Getting lost together is always better than finding the way alone. The world fades when we explore.",
-      image: "/assets/photos/memories/memory03.jpg", // Replace with real photo later!
+      image: "/End3.png",
       date: "A Sunny Afternoon",
       hint: "Found sitting quietly by the benches on the old road."
     },
@@ -83,7 +83,7 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
       id: "memory04",
       title: "The Quiet Moments",
       text: "No plans, no rush. Just sharing a silence that feels completely comfortable and full of unspoken words.",
-      image: "/assets/photos/memories/memory04.jpg", // Replace with real photo later!
+      image: "/End4.png",
       date: "Autumn Sunset",
       hint: "Lying amidst old tools inside the mysterious garage."
     }

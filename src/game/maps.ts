@@ -43,9 +43,9 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       {
         id: "guide",
         name: "Coach Moh",
-        portrait: "guide",
-        x: 380,
-        y: 270,
+        portrait: "/abdou.png",
+        x: 550, // Near the motorcycle in Area 1
+        y: 280,
         width: 32,
         height: 48,
         spriteType: "guide",
@@ -132,7 +132,7 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       {
         id: "traveler",
         name: "Old Traveler",
-        portrait: "traveler",
+        portrait: "/abdou.png",
         x: 480,
         y: 280,
         width: 32,
@@ -220,7 +220,7 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
       {
         id: "mechanic",
         name: "Slick the Mechanic",
-        portrait: "mechanic",
+        portrait: "/abdou.png",
         x: 680,
         y: 180,
         width: 32,
