@@ -543,9 +543,8 @@ export class GameEngine {
           this.syncInventoryWithItems();
           this.notifyState();
         } else {
-          this.triggerLocalDialogue("The Locked Door", "traveler", [
-            "The heavy iron doors of the garage are locked with an old padlock.",
-            "A small key engraving is visible. You must find the rusty key!"
+          this.triggerLocalDialogue("Coach Farouk", "traveler", [
+            "haa hawsi 3la lmftah w rwahi!!!"
           ]);
         }
         return;
@@ -585,15 +584,22 @@ export class GameEngine {
       }
       this.notifyState();
 
-      const itemNames: Record<string, string> = {
-        helmet: "🏍️ OLD LEATHER HELMET",
-        key: "🔑 RUSTY GARAGE KEY",
-      };
-
-      this.triggerLocalDialogue("Coach Farouk", "traveler", [
-        `Found item: ${itemNames[item.id] || item.name}!`,
-        "It was added to your inventory journal."
-      ]);
+      if (item.id === "helmet") {
+        this.triggerLocalDialogue("Coach Farouk", "traveler", [
+          "très bien hada howa lcasque",
+          "zidi hawsi 3la lmeftah w cbn"
+        ]);
+      } else if (item.id === "key") {
+        this.triggerLocalDialogue("Coach Farouk", "traveler", [
+          "mlih l9iti lmftah dork dokhli ldar diri wach lazem w khorji",
+          "khofi abdou rah y9are3"
+        ]);
+      } else {
+        this.triggerLocalDialogue("Coach Farouk", "traveler", [
+          `Found item: ${item.name}!`,
+          "It was added to your inventory journal."
+        ]);
+      }
     }
   }
 
@@ -734,13 +740,25 @@ export class GameEngine {
     if (this.state.currentArea === 4) {
       this.renderer.drawMotorcycle(300, 180, !this.state.isMotorcycleUncovered, this.camera);
     } else if (this.state.currentArea === 5 && !this.state.isEndingDisappearance) {
-      this.renderer.drawMotorcycle(520, 280, false, this.camera);
+      // During ending journey, keep the bike centered on screen regardless of its "world" position
+      const bikeX = (this.state.endingPhase && this.state.endingPhase.startsWith("scene"))
+        ? this.camera.x + (this.canvas.width / this.renderer.zoomScale) / 2 + this.state.endingOffset
+        : 520;
+      
+      this.renderer.drawMotorcycle(bikeX, 280, false, this.camera);
     }
 
     // 5. Draw NPCs
     area.npcs.forEach((npc) => {
       if (this.state.isEndingDisappearance && this.state.currentArea === 5) return;
-      this.renderer.drawNPC(npc, this.camera);
+      
+      // During ending journey, keep Abdou on the bike at screen center
+      if (this.state.currentArea === 5 && npc.id === "companion" && this.state.endingPhase && this.state.endingPhase.startsWith("scene")) {
+        const npcX = this.camera.x + (this.canvas.width / this.renderer.zoomScale) / 2 + this.state.endingOffset + 10; // offset slightly for riding
+        this.renderer.drawNPC({ ...npc, x: npcX, y: 260 }, this.camera);
+      } else {
+        this.renderer.drawNPC(npc, this.camera);
+      }
     });
 
     // 6. Draw Player
@@ -758,11 +776,12 @@ export class GameEngine {
 
     // 4.5 Draw Ending Scene (Outside the offset, so it stays fixed on camera)
     if (this.state.currentArea === 5 && this.state.endingPhase && this.state.endingPhase.startsWith("scene")) {
-      // Calculate center X of screen in world coordinates
+      // Calculate center of screen in world coordinates
       const centerX = this.camera.x + (this.canvas.width / this.renderer.zoomScale) / 2;
+      const centerY = this.camera.y + (this.canvas.height / this.renderer.zoomScale) / 2;
       
-      // Draw centered horizontally, anchored to the road height (y=400)
-      this.renderer.drawEndingScene(this.state.endingPhase, centerX, 400, this.camera, this.state.endingSceneStartTime);
+      // Draw centered horizontally and vertically
+      this.renderer.drawEndingScene(this.state.endingPhase, centerX, centerY, this.camera, this.state.endingSceneStartTime);
     }
 
     // 6.5 Draw Petals

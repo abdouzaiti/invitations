@@ -260,7 +260,7 @@ export default function App() {
                   <div className="flex flex-col items-center gap-4 bg-slate-900/90 border-2 border-amber-500/50 p-6 rounded-2xl backdrop-blur-xl shadow-2xl max-w-[280px] w-full text-center">
                     <div className="text-4xl animate-bounce">🏍️</div>
                     <h2 className="text-sm md:text-base font-black text-amber-100 tracking-tight uppercase">
-                      Ready to begin the journey?
+                      Will you be my back pack?
                     </h2>
                     <div className="flex gap-3 w-full mt-1 relative h-12">
                       <button

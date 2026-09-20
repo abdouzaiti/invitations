@@ -91,23 +91,28 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
 
   dialogues: {
     guideIntro: [
-      "You've finally arrived... Welcome.",
-      "This world is built from pieces of time, containing moments and memories.",
-      "But they have been scattered across these paths.",
-      "To find out why you're here, you must find them all.",
-      "I believe there are 4 memories in total. Look for glowing golden polaroids.",
-      "Explore the path to the east once you are ready. Your quest begins now!"
+      "wech hanene cv",
+      "chaki diri hna?",
+      "BTW abdou rah yhawes 3lik",
+      "kayn 4 photos memories galek majich bla bihom ana ghadi n3awnek",
+      "kol chapter fih memories ki tkamlihom yeteftah lbab w tigi tkmli",
+      "cbn bzef 3lik rohi et bon courage"
     ],
     travelerTips: [
-      "Hello adventurer! Beautiful day for a walk, isn't it?",
-      "I saw something glowing in the forest clearing north-east of here.",
-      "The grass looked slightly trodden there. Try searching beyond the thick trees."
+      "wee hanene halbina",
+      "malki t3almti tjri chwia weliti tetkabri 3lina",
+      "...elmohim abdou gali nsa l casque lahmar w mafatih rahom tayhin bera hawsi 3lihom w dihomlah m3ak",
+      "3labali raki thawsi 3lih",
+      "rah y9ara3lek f trig stidia kmli direct twesli",
+      "good luck"
     ],
     mechanicClues: [
-      "Hey! Are you exploring the old road?",
-      "Be careful, there's a dusty old helmet lying around here somewhere.",
-      "People say someone left their keys in a small box too.",
-      "If you find them, they might unlock the old garage just ahead."
+      "hanene kiraki bnti",
+      "raki thawsi 3la abdou bayna wah 👀🤣😏",
+      "habeltiiiih bach yersalhalk dork",
+      "rahi 4 ta3 sbah ykteblk fiha hhh",
+      "ma3lich rohit direct tel9yeh y9are3lek",
+      "aya good luck"
     ],
     motorcycleFound: [
       "So... you found it.",
@@ -117,11 +122,11 @@ export const GAME_CONFIG: GamePersonalization & { memories: Memory[] } = {
       "Follow the mountain road east. Someone is waiting for you at the overlook."
     ],
     finalMeeting: [
-      "You made it.",
-      "You gathered every single memory, and followed the road all the way to this cliffside.",
-      "Everything has led to this exact moment.",
-      "And somehow...",
-      "...you ended up here with me."
+      "oooh alhamdulilah",
+      "ta2 mn wintaaa rani n9are3lk welaa , win konti",
+      "ma3lich très bien jebti lmfatih wl casque ta3k",
+      "sema moh w farouk daro li 3lihom",
+      "lmohim will you be my back pack....?"
     ]
   }
 };

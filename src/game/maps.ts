@@ -219,8 +219,8 @@ export const MAP_AREAS: Record<AreaId, MapArea> = {
     npcs: [
       {
         id: "mechanic",
-        name: "Slick the Mechanic",
-        portrait: "/abdou.png",
+        name: "Mr afif",
+        portrait: "/afif.jpg",
         x: 680,
         y: 180,
         width: 32,

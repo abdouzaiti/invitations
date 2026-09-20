@@ -556,7 +556,7 @@ export class GameRenderer {
       const targetHeight = 80;
       const targetWidth = (img.naturalWidth / img.naturalHeight) * targetHeight;
 
-      ctx.drawImage(img, -targetWidth / 2, -targetHeight, targetWidth, targetHeight);
+      ctx.drawImage(img, -targetWidth / 2, -targetHeight / 2, targetWidth, targetHeight);
 
       ctx.restore();
     }
